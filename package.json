@@ -1,11 +1,11 @@
 {
   "name": "verhalen",
-  "version": "1.0.0",
+  "version": "1.5.31",
   "description": "",
   "main": "databasjs.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-	"run": "node --experimental-modules databasjs.mjs"
+	"run": "node --experimental-modules useDbExample.mjs"
   },
   "author": "",
   "license": ""

@@ -99,7 +99,6 @@ const getRowPositionFromPart = (schema, endPosition, part, value, readBuffer) =>
 };
 
 const readRowPositionFromPart = (schema, filedescriptor, endPosition, part, value, callBack) => {
-	
 	const readBuffer = Buffer.allocUnsafeSlow(endPosition);
 	fs.read(filedescriptor, readBuffer, 0, endPosition, 0, (error, bytesRead, _) => {
 		if (error) {
@@ -107,7 +106,6 @@ const readRowPositionFromPart = (schema, filedescriptor, endPosition, part, valu
 			return;
 		}	
 		callBack(getRowPositionFromPart(schema, endPosition, part, value, readBuffer));
-		
 	});
 };
 
