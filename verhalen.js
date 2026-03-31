@@ -4,9 +4,9 @@ export {useDB, createDB, closeDB, appendObject, replaceObject, createSchema};
 */
 import fs from "fs";
     
-import {empty, entryBuffer, entryString} from "./configuration.mjs";
-import {readRow, readRowFromPart, readRowPositionFromPart} from "./read.mjs";
-import {writeObject, writeBufferAt} from "./write.mjs";
+import {empty, entryBuffer, entryString} from "./configuration.js";
+import {readRow, readRowFromPart, readRowPositionFromPart} from "./read.js";
+import {writeObject, writeBufferAt} from "./write.js";
 
 const startPositionFile = 0;
 const baseFileSize = 2000;

@@ -2,7 +2,7 @@ export {stringFromBufferWithEmptySpace,
 readRow, readRowFromPart, readRowPositionFromPart/*, readRowRaw*/};
 
 import fs from "fs";
-import {empty} from "./configuration.mjs";
+import {empty} from "./configuration.js";
 
 
 const extractStringFromStringWithEmptySpace = (string) => {

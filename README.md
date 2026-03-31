@@ -15,7 +15,7 @@ other than string (number, int32, int 64, date, lists, etc)
 ### file
 
 ```
-file database.dbx
+file database.verhalen
 |----------|
 Header fixed size
 Body fixed size

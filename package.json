@@ -1,12 +1,13 @@
 {
   "name": "verhalen",
-  "version": "1.5.31",
+  "version": "2.0.0",
   "description": "",
-  "main": "databasjs.js",
+  "main": "verhalen.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-	"run": "node --experimental-modules useDbExample.mjs"
+	"run": "node --experimental-modules useDbExample.js"
   },
   "author": "",
-  "license": ""
+  "license": "",
+  "type": "module"
 }

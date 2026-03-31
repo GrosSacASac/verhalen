@@ -1,6 +1,6 @@
 export {writeBufferAt, writeRow, writeObject};
 
-import {empty} from "./configuration.mjs";
+import {empty} from "./configuration.js";
 import fs from "fs";
 
 /* there seems to be a problem with wirte appending marks everything with null or resetts the length */
