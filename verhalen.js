@@ -1,11 +1,22 @@
-export {useDB, createDB, closeDB, appendObject, replaceObject, createSchema};
+export {
+    useDB,
+    createDB,
+    closeDB,
+    appendObject,
+    replaceObject,
+    createSchema,
+    readAllObjects,
+    readFind,
+};
 
 /*use readRowPositionFromPart with writeObject to make high level replace function
 */
-import fs from "fs";
-    
+import fs from "node:fs";
+import fsPromises from "node:fs/promises";
+import packageJson from "./package.json" with { type: 'json' };
+const {version} = packageJson;
 import {empty, entryBuffer, entryString} from "./configuration.js";
-import {readRow, readRowFromPart, readRowPositionFromPart} from "./read.js";
+import {readRow, readRowFromPart, readRowPositionFromPart, readAll} from "./read.js";
 import {writeObject, writeBufferAt} from "./write.js";
 
 const startPositionFile = 0;
@@ -45,10 +56,15 @@ const useDB = (path, schema) => {
 
 const createDB = (path, schema) => {
     // todo validate format
-    const fileLength = fs.statSync(path).size
+    let fileLength;
+    try {
+        fileLength = fs.statSync(path).size
+    } catch {
+
+    }
     
     const bodyLength = 0;
-    const length = fileLength - headerLength;
+    // const length = fileLength - headerLength;
     
     return new Promise((resolve, reject) => {
         // r for read, a for append w for write will put null everythewhere or shrink the file
@@ -62,6 +78,7 @@ const createDB = (path, schema) => {
             const schemaJSON = JSON.stringify(schema);
             const headerLength = Buffer.byteLength(schemaJSON);
             const dataBase = {
+                path,
                 fileSize: baseFileSize,
                 headerLength,
                 maximumHeaderLength: baseHeaderSize,
@@ -72,8 +89,11 @@ const createDB = (path, schema) => {
                 schema,
                 filedescriptor
             };
-            const firstBuffer = Buffer.concat(Buffer.from(schemaJSON), Buffer.from({length: baseFileSize - maximumBodyLength}));
-            writeBufferAt(filedescriptor, firstBuffer, 0, firstBuffer.length, () => {
+            const firstBuffer = Buffer.concat([
+                Buffer.from(schemaJSON),
+                Buffer.from({length: baseFileSize - dataBase.maximumBodyLength})
+            ]);
+            writeBufferAt(filedescriptor, firstBuffer, 0, () => {
                 resolve(dataBase);
             })
         });
@@ -82,16 +102,11 @@ const createDB = (path, schema) => {
 
 const closeDB = (dataBase) => {
     const {filedescriptor} = dataBase;
-	fs.close(filedescriptor, error => {
-        if (error) {
-            console.error(error);
-            return;
-        }
-    });
+    return fsPromises.close(filedescriptor);
 };
 
 const createSchema = (schema) => {
-    schema.version = "1.0.0";
+    schema.version = version;
     schema.fieldsLength = schema.fields.reduce((total, current) => {
         return current.length + total;
     }, 0);
@@ -101,9 +116,13 @@ const createSchema = (schema) => {
 const appendObject = (dataBase, object) => {
     const {schema, filedescriptor, bodyLastPosition} = dataBase;
     
-    writeObject(schema, filedescriptor, object, bodyLastPosition, (newPosition) => {
-        dataBase.bodyLastPosition = newPosition;
-    });
+    return new Promise((resolve, reject) => {
+
+        writeObject(schema, filedescriptor, object, bodyLastPosition, (newPosition) => {
+            dataBase.bodyLastPosition = newPosition;
+            resolve();
+        });
+    })
 };
 
 const replaceObject = (dataBase, object) => {
@@ -122,5 +141,16 @@ const replaceObject = (dataBase, object) => {
 
 
 const addFields = (filedescriptor, fieldsBuffer, updateEndPosition) => {
-	writeBufferAt(filedescriptor, fieldsBuffer, endPosition, updateEndPosition);
+    writeBufferAt(filedescriptor, fieldsBuffer, endPosition, updateEndPosition);
+};
+
+const readAllObjects = (dataBase) => {
+    const {schema, path} = dataBase;
+    return readAll(schema, path, dataBase.bodyStartPosition);
+};
+
+
+const readFind = async (dataBase, filter) => {
+    const all = await readAll(dataBase);
+    return all.find(filter);
 };

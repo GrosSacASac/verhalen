@@ -1,7 +1,9 @@
 export {stringFromBufferWithEmptySpace,
-readRow, readRowFromPart, readRowPositionFromPart/*, readRowRaw*/};
-
-import fs from "fs";
+	readRow, readRowFromPart, readRowPositionFromPart,
+	readAll/*, readRowRaw*/};
+	
+import fs from "node:fs";
+import fsPromises from "node:fs/promises";
 import {empty} from "./configuration.js";
 
 
@@ -58,6 +60,34 @@ const readRow = (schema, filedescriptor, rowPosition) => {
 	const position = rowPosition * schema.fieldsLength;
 	readRowRaw(filedescriptor, rowPosition, rowFromBuffer.bind(undefined, schema));
 };
+
+const readAll = async (schema, path, bodyStartPosition) => {
+	const fileHandle = await fsPromises.open(path, 'r');
+	const readBuffer = Buffer.allocUnsafe(1000);
+	await fileHandle.read(readBuffer,0,1000,bodyStartPosition)
+	let objectLength = 0;
+	schema.map(({name, length}) => {
+		objectLength += length;
+	});
+	let position = 0;
+	const all=[];
+	while (position + objectLength <= readBuffer.byteLength) {
+		const row = Buffer.allocUnsafe(objectLength);
+		row = readBuffer.substring(position, position + objectLength);
+		const rowObject = {};
+		let localPosition = 0;
+		schema.forEach(({name, length}) => {
+			let substring = row.substring(localPosition, localPosition + length);
+			const emptyIndex = substring.indexOf(empty);
+			if (emptyIndex !== -1) {
+				substring = substring.substring(0, emptyIndex)
+			}
+			rowObject[name] = substring;
+
+		});
+	} 
+	return all;
+}
 
 
 

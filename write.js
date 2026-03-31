@@ -1,7 +1,7 @@
 export {writeBufferAt, writeRow, writeObject};
 
 import {empty} from "./configuration.js";
-import fs from "fs";
+import fs from "node:fs";
 
 /* there seems to be a problem with wirte appending marks everything with null or resetts the length */
 const writeBufferAt = (filedescriptor, buffer, position, updateEndPosition) => {
@@ -21,11 +21,13 @@ const writeRow = (schema, filedescriptor, fieldsBuffer, rowPosition, updateEndPo
 	writeBufferAt(filedescriptor, fieldsBuffer, position, updateEndPosition);
 };
 
-const writeObject = (schema, filedescriptor, object, rowPosition, updateEndPosition) => {
-	const position = rowPosition * schema.fieldsLength;
-	const asString = schema.fields.map(({name, length}) => {
-		const string = object[name].padEnd(length, empty);
+const writeObject = (schema, filedescriptor, object, bodyPosition, updateEndPosition) => {
+	let objectLength = 0;
+	const asString = schema.map(({name, length}) => {
+		objectLength += length;
+		return object[name].padEnd(length, empty);
 	}).join(``);
 	const fieldsBuffer = Buffer.from(asString);
-	writeBufferAt(filedescriptor, fieldsBuffer, position, updateEndPosition);
+	// const position = rowPosition * objectLength;
+	writeBufferAt(filedescriptor, fieldsBuffer, bodyPosition, updateEndPosition);
 };
