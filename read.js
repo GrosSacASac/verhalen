@@ -73,7 +73,7 @@ const readAll = async (schema, objectLength, path, bodyStartPosition, bodyLastPo
 		const rowObject = {};
 		let localPosition = 0;
 		schema.forEach(({name, length}) => {
-			let substring = row.subarray(localPosition, localPosition + length).map(uInt8 => {
+			let substring = Array.from(row.subarray(localPosition, localPosition + length)).map(uInt8 => {
 				return String.fromCodePoint(uInt8);
 			}).join("");
 			const emptyIndex = substring.indexOf(empty);
