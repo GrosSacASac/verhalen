@@ -3,6 +3,7 @@
 todo
 
 ```
+fsPromises.open(path, 'r') required ? when opened for write ?
 readRowPositionFromPart should have startPosition argument
 make consumable with http,without extra work
 define api to create schema
@@ -24,7 +25,12 @@ Body fixed size
 
 ### Header fixed size
 
-JSON header followed by empty space
+verhalen prefix  (8bytes)
+verhalen version (3bytes)
+Schema size (2bytes) (todo)
+JSON header(schema)
+last known positions ?
+followed by empty space
 
 ### Body fixed size
 

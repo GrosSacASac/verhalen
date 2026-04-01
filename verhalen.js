@@ -14,7 +14,7 @@ export {
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import packageJson from "./package.json" with { type: 'json' };
-const {version} = packageJson;
+const {version, name} = packageJson;
 import {empty, entryBuffer, entryString} from "./configuration.js";
 import {readRow, readRowFromPart, readRowPositionFromPart, readAll} from "./read.js";
 import {writeObject, writeBufferAt} from "./write.js";
@@ -22,6 +22,7 @@ import {writeObject, writeBufferAt} from "./write.js";
 const startPositionFile = 0;
 const baseFileSize = 2000;
 const baseHeaderSize = 200;
+const versionSplit = version.split(".").map(Number)
 
 const useDB = async(path, schema) => {
     const alreadyCreated = fs.existsSync(path);
@@ -39,11 +40,16 @@ const createDB = (path, schema) => {
         // r for read, a for append w for write will put null everythewhere or shrink the file
         const fileHandle = await fsPromises.open(path, 'w');
         const schemaJSON = JSON.stringify(schema);
+        const schemaLength = schemaJSON.length;
 
         const dataBase = createDBInterface(path, schema);
         dataBase.fileHandle = fileHandle;
         const firstBuffer = Buffer.concat([
+            Buffer.from(name),
+            Uint8Array.from(versionSplit),
+            //schema size todo
             Buffer.from(schemaJSON),
+            // last known positions ?
             new Uint8Array(baseFileSize),
         ]);
         await writeBufferAt(fileHandle, firstBuffer, 0)
