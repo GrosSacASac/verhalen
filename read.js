@@ -61,31 +61,33 @@ const readRow = (schema, filedescriptor, rowPosition) => {
 	readRowRaw(filedescriptor, rowPosition, rowFromBuffer.bind(undefined, schema));
 };
 
-const readAll = async (schema, path, bodyStartPosition) => {
+const readAll = async (schema, objectLength, path, bodyStartPosition, bodyLastPosition, bodyObjects) => {
 	const fileHandle = await fsPromises.open(path, 'r');
-	const readBuffer = Buffer.allocUnsafe(1000);
-	await fileHandle.read(readBuffer,0,1000,bodyStartPosition)
-	let objectLength = 0;
-	schema.map(({name, length}) => {
-		objectLength += length;
-	});
+	const readBuffer = new Uint8Array(bodyObjects*objectLength);
+	await fileHandle.read(readBuffer,0,bodyObjects*objectLength,bodyStartPosition)
 	let position = 0;
 	const all=[];
 	while (position + objectLength <= readBuffer.byteLength) {
-		const row = Buffer.allocUnsafe(objectLength);
-		row = readBuffer.substring(position, position + objectLength);
+		let row; /* = new Uint8Array(objectLength); */
+		row = readBuffer.subarray(position, position + objectLength);
 		const rowObject = {};
 		let localPosition = 0;
 		schema.forEach(({name, length}) => {
-			let substring = row.substring(localPosition, localPosition + length);
+			let substring = row.subarray(localPosition, localPosition + length).map(uInt8 => {
+				return String.fromCodePoint(uInt8);
+			}).join("");
 			const emptyIndex = substring.indexOf(empty);
 			if (emptyIndex !== -1) {
 				substring = substring.substring(0, emptyIndex)
 			}
 			rowObject[name] = substring;
+			localPosition += length;
 
 		});
-	} 
+		all.push(rowObject);
+		position += objectLength;
+	}
+	fileHandle.close();
 	return all;
 }
 

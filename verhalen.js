@@ -77,6 +77,11 @@ const createDB = (path, schema) => {
             const filedescriptor = newFiledescriptor;
             const schemaJSON = JSON.stringify(schema);
             const headerLength = Buffer.byteLength(schemaJSON);
+
+            let objectLength = 0;
+            schema.map(({name, length}) => {
+                objectLength += length;
+            });
             const dataBase = {
                 path,
                 fileSize: baseFileSize,
@@ -84,9 +89,11 @@ const createDB = (path, schema) => {
                 maximumHeaderLength: baseHeaderSize,
                 bodyStartPosition: baseHeaderSize,
                 bodyLastPosition: baseHeaderSize,
+                bodyObjects: 0,
                 bodyLength,
                 maximumBodyLength: baseFileSize - baseHeaderSize,
                 schema,
+                objectLength,
                 filedescriptor
             };
             const firstBuffer = Buffer.concat([
@@ -101,8 +108,8 @@ const createDB = (path, schema) => {
 };
 
 const closeDB = (dataBase) => {
-    const {filedescriptor} = dataBase;
-    return fsPromises.close(filedescriptor);
+    const {filedescriptor, fileHandle} = dataBase;
+    return fileHandle?.close(filedescriptor);
 };
 
 const createSchema = (schema) => {
@@ -120,6 +127,8 @@ const appendObject = (dataBase, object) => {
 
         writeObject(schema, filedescriptor, object, bodyLastPosition, (newPosition) => {
             dataBase.bodyLastPosition = newPosition;
+            dataBase.bodyObjects += 1;
+            dataBase.bodyLength += dataBase.objectLength;
             resolve();
         });
     })
@@ -146,7 +155,7 @@ const addFields = (filedescriptor, fieldsBuffer, updateEndPosition) => {
 
 const readAllObjects = (dataBase) => {
     const {schema, path} = dataBase;
-    return readAll(schema, path, dataBase.bodyStartPosition);
+    return readAll(schema, dataBase.objectLength, path, dataBase.bodyStartPosition, dataBase.bodyLastPosition, dataBase.bodyObjects);
 };
 
 
