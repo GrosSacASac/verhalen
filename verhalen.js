@@ -16,6 +16,7 @@ import fsPromises from "node:fs/promises";
 import packageJson from "./package.json" with { type: 'json' };
 const {version, name} = packageJson;
 import {empty, entryBuffer, entryString} from "./configuration.js";
+import {uint8ArrayFromString} from "./netzlech.js";
 import {readRow, readRowFromPart, readRowPositionFromPart, readAll} from "./read.js";
 import {writeObject, writeBufferAt} from "./write.js";
 
@@ -44,14 +45,19 @@ const createDB = (path, schema) => {
 
         const dataBase = createDBInterface(path, schema);
         dataBase.fileHandle = fileHandle;
-        const firstBuffer = Buffer.concat([
-            Buffer.from(name),
-            Uint8Array.from(versionSplit),
-            //schema size todo
-            Buffer.from(schemaJSON),
+        const firstBuffer = Uint8Array.of(
+            ...uint8ArrayFromString(name),
+            ...Uint8Array.from(versionSplit),
+            0, // empty byte
+            0,
+            0, //schema size 2 bytes
+            ...uint8ArrayFromString(schemaJSON),
             // last known positions ?
-            new Uint8Array(baseFileSize),
-        ]);
+            ...(new Uint8Array(baseFileSize)),
+        );
+
+        const int16View = new Uint16Array(firstBuffer);
+        int16View[6] = schemaLength;//write at 12th
         await writeBufferAt(fileHandle, firstBuffer, 0)
         resolve(dataBase);
         

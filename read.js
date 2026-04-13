@@ -5,6 +5,7 @@ export {stringFromBufferWithEmptySpace,
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import {empty} from "./configuration.js";
+import {stringFromUint8Array} from "./netzlech.js";
 
 
 const extractStringFromStringWithEmptySpace = (string) => {
@@ -73,9 +74,7 @@ const readAll = async (schema, objectLength, path, bodyStartPosition, bodyLastPo
 		const rowObject = {};
 		let localPosition = 0;
 		schema.forEach(({name, length}) => {
-			let substring = Array.from(row.subarray(localPosition, localPosition + length)).map(uInt8 => {
-				return String.fromCodePoint(uInt8);
-			}).join("");
+			let substring = stringFromUint8Array(row.subarray(localPosition, localPosition + length));
 			const emptyIndex = substring.indexOf(empty);
 			if (emptyIndex !== -1) {
 				substring = substring.substring(0, emptyIndex)
