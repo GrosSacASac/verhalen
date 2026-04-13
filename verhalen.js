@@ -9,8 +9,6 @@ export {
     readFind,
 };
 
-/*use readRowPositionFromPart with writeObject to make high level replace function
-*/
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import packageJson from "./package.json" with { type: 'json' };
@@ -19,6 +17,13 @@ import {empty, entryBuffer, entryString} from "./configuration.js";
 import {uint8ArrayFromString} from "./netzlech.js";
 import {readRow, readRowFromPart, readRowPositionFromPart, readAll} from "./read.js";
 import {writeObject, writeBufferAt} from "./write.js";
+
+
+const WRITE = "w";
+const WRITE_READ = "r+";
+const WRITE_READ_CREATE = "w+";
+const READ = "r";
+const APPEND = "a";
 
 const startPositionFile = 0;
 const baseFileSize = 2000;
@@ -31,7 +36,7 @@ const useDB = async(path, schema) => {
         return createDB(path, schema);
     }
     const db =  createDBInterface(path, schema);
-    db.fileHandle = await fsPromises.open(path, 'a');
+    db.fileHandle = await fsPromises.open(path, WRITE_READ);
     return db;
     
 };
@@ -39,7 +44,7 @@ const useDB = async(path, schema) => {
 const createDB = (path, schema) => {
     return new Promise(async (resolve, reject) => {
         // r for read, a for append w for write will put null everythewhere or shrink the file
-        const fileHandle = await fsPromises.open(path, 'w');
+        const fileHandle = await fsPromises.open(path, WRITE_READ_CREATE);
         const schemaJSON = JSON.stringify(schema);
         const schemaLength = schemaJSON.length;
 
@@ -68,7 +73,8 @@ const createDBInterface = (path, schema) => {
     // todo validate format
     const bodyLength = 0;
     const schemaJSON = JSON.stringify(schema);
-    const headerLength = Buffer.byteLength(schemaJSON);
+    const schemaLength = (schemaJSON.length);
+    const headerLength = 14 + schemaLength;
 
     let objectLength = 0;
     schema.map(({name, length}) => {
@@ -77,6 +83,7 @@ const createDBInterface = (path, schema) => {
     return {
         path,
         fileSize: baseFileSize,
+        schemaLength,
         headerLength,
         maximumHeaderLength: baseHeaderSize,
         bodyStartPosition: baseHeaderSize,
@@ -108,7 +115,7 @@ const appendObject = (dataBase, object) => {
     
     return new Promise(async (resolve, reject) => {
 
-        const newPosition = await writeObject(schema, fileHandle, object, bodyLastPosition);
+        const newPosition = await writeObject(dataBase, object);
         dataBase.bodyLastPosition = newPosition;
         dataBase.bodyObjects += 1;
         dataBase.bodyLength += dataBase.objectLength;
@@ -117,18 +124,14 @@ const appendObject = (dataBase, object) => {
     })
 };
 
-const replaceObject = (dataBase, object) => {
-    const {schema, filedescriptor, bodyLastPosition} = dataBase;
-    readRowPositionFromPart(schema, filedescriptor, endPosition, part, value, (position) => {
-        if (position === -1) {
-            console.warn(`could not replace, it was not found`);
-            return;
-        }
+const replaceObject = async (dataBase, object, key, value) => {
+    const position =  await readRowPositionFromPart(dataBase, key, value)
+    if (position === -1) {
+        console.warn(`could not replace, it was not found`);
+        return;
+    }
         
-        writeObject(schema, filedescriptor, object, position, (newPosition) => {
-            // success
-        });
-    });
+    return writeObject(dataBase, object, position + dataBase.maximumHeaderLength);
 };
 
 

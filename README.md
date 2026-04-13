@@ -4,7 +4,6 @@ todo
 
 ```
 fsPromises.open(path, 'r') required ? when opened for write ?
-readRowPositionFromPart should have startPosition argument
 make consumable with http, without extra work
 
 other than string (number, int32, int 64, date, lists, etc)
@@ -22,7 +21,7 @@ import {
     replaceObject,
     createSchema,
     readAllObjects,
-    readFind
+    readFind,
 } from "verhalen";
 ```
 
@@ -51,6 +50,7 @@ Schema size (2bytes) (todo)
 JSON header(schema)
 
 14 bytes + schema length
+filled with blanks to fit baseHeaderSize
 
 ### Body fixed size
 
@@ -60,7 +60,7 @@ Body followed by empty space
 
 0 or more body entries
 
-#### Body Entry
+#### Body Entry (object)
 
 Each field (according to the schema used during creation)
 

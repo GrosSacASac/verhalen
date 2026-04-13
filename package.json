@@ -5,9 +5,12 @@
   "main": "verhalen.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-	"run": "node --experimental-modules useDbExample.js"
+    "run": "node --experimental-modules useDbExample.js"
   },
   "author": "",
   "license": "",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "utilsac": "^15.4.0"
+  }
 }

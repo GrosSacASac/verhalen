@@ -5,7 +5,8 @@ export {stringFromBufferWithEmptySpace,
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import {empty} from "./configuration.js";
-import {stringFromUint8Array} from "./netzlech.js";
+import {stringFromUint8Array, uint8ArrayFromString} from "./netzlech.js";
+import { deepEqualAdded } from "utilsac/deep.js";
 
 
 const extractStringFromStringWithEmptySpace = (string) => {
@@ -92,52 +93,54 @@ const readAll = async (schema, objectLength, path, bodyStartPosition, bodyLastPo
 
 
 
-const getRowPositionFromPart = (schema, endPosition, part, value, readBuffer) => {
+const getRowPositionFromPart = (db, key, value, readBuffer) => {
 	/* given a schema,
     reads all rows with
     until it finds a row which has a part strictly equal to value
 	then gives back that row
     or -1 if not found
     */
-    const valueLengthBytes = Buffer.byteLength(value);
+	const {schema, objectLength} = db;
 	let offset = 0
 	let cursor;
 	let partLength = 0;
     
-	const found = schema.fields.some(({name, length}) => {
-		if (name === part) {
+	const found = schema.some(({name, length}) => {
+		if (name === key) {
 			partLength = length;
             cursor = offset;
+			value = value.padEnd(length, empty)
 			return true;
 		}
 		offset += length;
 	});
+	const valueAsuint8 = uint8ArrayFromString(value);
+	const valueLengthBytes = (valueAsuint8.length);
 	
 	if (!found) {
 		console.error(`part ${part} not found in schema ${JSON.stringify(schema)}`);
-		return;
+		return -1;
 	}
-	while (cursor < endPosition) {
-		const buffer = readBuffer.subarray(cursor, cursor + valueLengthBytes);
-		const string  = String(buffer);
-		if (string === value) {
+
+	while (cursor < readBuffer.length) {
+		const candidate = readBuffer.subarray(cursor, cursor + valueLengthBytes);
+		if (deepEqualAdded(valueAsuint8, candidate)) {
 			cursor -= offset;
 			return cursor;
 		}
-		cursor += schema.fieldsLength;
+		cursor += objectLength;
 	}
 	return -1;
 };
 
-const readRowPositionFromPart = (schema, filedescriptor, endPosition, part, value, callBack) => {
-	const readBuffer = Buffer.allocUnsafeSlow(endPosition);
-	fs.read(filedescriptor, readBuffer, 0, endPosition, 0, (error, bytesRead, _) => {
-		if (error) {
-			console.error(error);
-			return;
-		}	
-		callBack(getRowPositionFromPart(schema, endPosition, part, value, readBuffer));
-	});
+const readRowPositionFromPart = async(db, key, value) => {
+	const {path, bodyObjects, objectLength,maximumHeaderLength, fileHandle} = db;
+	// const fileHandle = await fsPromises.open(path, 'r');
+	const readBuffer = new Uint8Array(bodyObjects*objectLength);
+	await fileHandle.read(readBuffer,0,bodyObjects*objectLength,maximumHeaderLength)
+	// fileHandle.close();
+	return getRowPositionFromPart(db, key, value, readBuffer);
+
 };
 
 const readRowFromPart = (schema, filedescriptor, endPosition, part, value) => {

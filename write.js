@@ -3,6 +3,7 @@ export {writeBufferAt, writeRow, writeObject};
 import {empty} from "./configuration.js";
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
+import { uint8ArrayFromString } from "./netzlech.js";
 
 /* there seems to be a problem with wirte appending marks everything with null or resetts the length */
 const writeBufferAt = async (fileHandle, buffer, position) => {
@@ -16,13 +17,11 @@ const writeRow = (schema, filedescriptor, fieldsBuffer, rowPosition) => {
 	return writeBufferAt(filedescriptor, fieldsBuffer, position);
 };
 
-const writeObject = async (schema, fileHandle, object, bodyPosition) => {
-	let objectLength = 0;
-	const asString = schema.map(({name, length}) => {
-		objectLength += length;
+const writeObject = async (dataBase, object, position = dataBase.bodyLastPosition) => {
+	const asString = dataBase.schema.map(({name, length}) => {
 		return object[name].padEnd(length, empty);
 	}).join(``);
-	const fieldsBuffer = Buffer.from(asString);
+	const fieldsBuffer = uint8ArrayFromString(asString);
 	// const position = rowPosition * objectLength;
-	return writeBufferAt(fileHandle, fieldsBuffer, bodyPosition);
+	return writeBufferAt(dataBase.fileHandle, fieldsBuffer, position);
 };
