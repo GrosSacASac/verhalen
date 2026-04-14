@@ -4,6 +4,7 @@ import {
     appendObject,
     closeDB,
     readAllObjects,
+    deleteObject,
 } from "./verhalen.js";
 import fsPromises from "node:fs/promises";
 
@@ -26,10 +27,19 @@ await appendObject(db, {
     color: "brown"
 });
 
-// db.bodyObjects = 2;
-const allObjects = await readAllObjects(db);
+await appendObject(db, {
+    Name: "temp",
+    Bday: "1999-01-01",
+    color: "gold"
+});
 
-console.log(allObjects);
+// db.bodyObjects = 2;
+
+console.log(await readAllObjects(db));
+
+await deleteObject(db, "Name", "temp");
+
+console.log("after delete", await readAllObjects(db));
 
 await closeDB(db);
 

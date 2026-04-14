@@ -1,4 +1,4 @@
-export {writeBufferAt, writeRow, writeObject};
+export {writeBufferAt, writeBlank, writeObject};
 
 import {empty} from "./configuration.js";
 import fs from "node:fs";
@@ -12,10 +12,6 @@ const writeBufferAt = async (fileHandle, buffer, position) => {
 	return position + buffer.length;
 };
 
-const writeRow = (schema, filedescriptor, fieldsBuffer, rowPosition) => {
-	const position = rowPosition * schema.fieldsLength;
-	return writeBufferAt(filedescriptor, fieldsBuffer, position);
-};
 
 const writeObject = async (database, object, position = database.bodyLastPosition) => {
 	const asString = database.schema.map(({name, length}) => {
@@ -24,4 +20,13 @@ const writeObject = async (database, object, position = database.bodyLastPositio
 	const fieldsBuffer = uint8ArrayFromString(asString);
 	// const position = rowPosition * objectLength;
 	return writeBufferAt(database.fileHandle, fieldsBuffer, position);
+};
+
+// effectively deletes
+const writeBlank = (database, position = database.bodyLastPosition) => {
+	return writeBufferAt(
+		database.fileHandle,
+		uint8ArrayFromString("".padEnd(database.objectLength, empty)),
+		position
+	);
 };

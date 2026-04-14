@@ -4,7 +4,7 @@ export {
     closeDB,
     appendObject,
     replaceObject,
-    createSchema,
+    deleteObject,
     readAllObjects,
     readFind,
 };
@@ -16,7 +16,7 @@ const {version, name} = packageJson;
 import {empty, entryBuffer, entryString} from "./configuration.js";
 import {uint8ArrayFromString} from "./netzlech.js";
 import {readRow, readRowFromPart, readRowPositionFromPart, readAll} from "./read.js";
-import {writeObject, writeBufferAt} from "./write.js";
+import {writeObject, writeBufferAt, writeBlank} from "./write.js";
 
 
 const WRITE = "w";
@@ -30,6 +30,12 @@ const baseFileSize = 2000;
 const baseHeaderSize = 200;
 const versionSplit = version.split(".").map(Number)
 
+const objectLengthFromSchema = (schema) => {
+    return schema.reduce((total, current) => {
+        return current.length + total;
+    }, 0);
+};
+
 const useDB = async(path, schema) => {
     const alreadyCreated = fs.existsSync(path);
     if (!alreadyCreated) {
@@ -38,7 +44,6 @@ const useDB = async(path, schema) => {
     const db =  createDBInterface(path, schema);
     db.fileHandle = await fsPromises.open(path, WRITE_READ);
     return db;
-    
 };
 
 const createDB = (path, schema) => {
@@ -76,10 +81,7 @@ const createDBInterface = (path, schema) => {
     const schemaLength = (schemaJSON.length);
     const headerLength = 14 + schemaLength;
 
-    let objectLength = 0;
-    schema.map(({name, length}) => {
-        objectLength += length;
-    });
+    const objectLength = objectLengthFromSchema(schema);
     return {
         path,
         fileSize: baseFileSize,
@@ -95,19 +97,11 @@ const createDBInterface = (path, schema) => {
         objectLength,
         filedescriptor:undefined,
     };
-}
+};
 
 const closeDB = (database) => {
     const {filedescriptor, fileHandle} = database;
     return fileHandle?.close(filedescriptor);
-};
-
-const createSchema = (schema) => {
-    schema.version = version;
-    schema.fieldsLength = schema.fields.reduce((total, current) => {
-        return current.length + total;
-    }, 0);
-    return schema;
 };
 
 const appendObject = (database, object) => {
@@ -134,15 +128,20 @@ const replaceObject = async (database, object, key, value) => {
     return writeObject(database, object, position + database.maximumHeaderLength);
 };
 
-
-const addFields = (filedescriptor, fieldsBuffer, updateEndPosition) => {
-    writeBufferAt(filedescriptor, fieldsBuffer, endPosition, updateEndPosition);
+const deleteObject = async (database, key, value) => {
+    const position =  await readRowPositionFromPart(database, key, value)
+    if (position === -1) {
+        console.warn(`could not delete, it was not found`);
+        return;
+    }
+        
+    await writeBlank(database, position + database.maximumHeaderLength);
+    database.bodyObjects -= 1;
 };
 
 const readAllObjects = (database) => {
     return readAll(database);
 };
-
 
 const readFind = async (database, filter) => {
     const all = await readAll(database);

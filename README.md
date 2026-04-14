@@ -19,9 +19,8 @@ import {
     closeDB,
     appendObject,
     replaceObject,
-    createSchema,
+    deleteObject,
     readAllObjects,
-    readFind,
 } from "verhalen";
 ```
 
