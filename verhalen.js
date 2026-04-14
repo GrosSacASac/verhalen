@@ -48,8 +48,8 @@ const createDB = (path, schema) => {
         const schemaJSON = JSON.stringify(schema);
         const schemaLength = schemaJSON.length;
 
-        const dataBase = createDBInterface(path, schema);
-        dataBase.fileHandle = fileHandle;
+        const database = createDBInterface(path, schema);
+        database.fileHandle = fileHandle;
         const firstBuffer = Uint8Array.of(
             ...uint8ArrayFromString(name),
             ...Uint8Array.from(versionSplit),
@@ -64,7 +64,7 @@ const createDB = (path, schema) => {
         const int16View = new Uint16Array(firstBuffer);
         int16View[6] = schemaLength;//write at 12th
         await writeBufferAt(fileHandle, firstBuffer, 0)
-        resolve(dataBase);
+        resolve(database);
         
     });
 };
@@ -97,8 +97,8 @@ const createDBInterface = (path, schema) => {
     };
 }
 
-const closeDB = (dataBase) => {
-    const {filedescriptor, fileHandle} = dataBase;
+const closeDB = (database) => {
+    const {filedescriptor, fileHandle} = database;
     return fileHandle?.close(filedescriptor);
 };
 
@@ -110,28 +110,28 @@ const createSchema = (schema) => {
     return schema;
 };
 
-const appendObject = (dataBase, object) => {
-    const {schema, fileHandle, bodyLastPosition} = dataBase;
+const appendObject = (database, object) => {
+    const {schema, fileHandle, bodyLastPosition} = database;
     
     return new Promise(async (resolve, reject) => {
 
-        const newPosition = await writeObject(dataBase, object);
-        dataBase.bodyLastPosition = newPosition;
-        dataBase.bodyObjects += 1;
-        dataBase.bodyLength += dataBase.objectLength;
+        const newPosition = await writeObject(database, object);
+        database.bodyLastPosition = newPosition;
+        database.bodyObjects += 1;
+        database.bodyLength += database.objectLength;
         resolve();
         
     })
 };
 
-const replaceObject = async (dataBase, object, key, value) => {
-    const position =  await readRowPositionFromPart(dataBase, key, value)
+const replaceObject = async (database, object, key, value) => {
+    const position =  await readRowPositionFromPart(database, key, value)
     if (position === -1) {
         console.warn(`could not replace, it was not found`);
         return;
     }
         
-    return writeObject(dataBase, object, position + dataBase.maximumHeaderLength);
+    return writeObject(database, object, position + database.maximumHeaderLength);
 };
 
 
@@ -139,13 +139,12 @@ const addFields = (filedescriptor, fieldsBuffer, updateEndPosition) => {
     writeBufferAt(filedescriptor, fieldsBuffer, endPosition, updateEndPosition);
 };
 
-const readAllObjects = (dataBase) => {
-    const {schema, path} = dataBase;
-    return readAll(schema, dataBase.objectLength, path, dataBase.bodyStartPosition, dataBase.bodyLastPosition, dataBase.bodyObjects);
+const readAllObjects = (database) => {
+    return readAll(database);
 };
 
 
-const readFind = async (dataBase, filter) => {
-    const all = await readAll(dataBase);
+const readFind = async (database, filter) => {
+    const all = await readAll(database);
     return all.find(filter);
 };

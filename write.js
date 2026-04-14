@@ -17,11 +17,11 @@ const writeRow = (schema, filedescriptor, fieldsBuffer, rowPosition) => {
 	return writeBufferAt(filedescriptor, fieldsBuffer, position);
 };
 
-const writeObject = async (dataBase, object, position = dataBase.bodyLastPosition) => {
-	const asString = dataBase.schema.map(({name, length}) => {
+const writeObject = async (database, object, position = database.bodyLastPosition) => {
+	const asString = database.schema.map(({name, length}) => {
 		return object[name].padEnd(length, empty);
 	}).join(``);
 	const fieldsBuffer = uint8ArrayFromString(asString);
 	// const position = rowPosition * objectLength;
-	return writeBufferAt(dataBase.fileHandle, fieldsBuffer, position);
+	return writeBufferAt(database.fileHandle, fieldsBuffer, position);
 };

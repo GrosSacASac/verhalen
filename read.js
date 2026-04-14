@@ -63,8 +63,9 @@ const readRow = (schema, filedescriptor, rowPosition) => {
 	readRowRaw(filedescriptor, rowPosition, rowFromBuffer.bind(undefined, schema));
 };
 
-const readAll = async (schema, objectLength, path, bodyStartPosition, bodyLastPosition, bodyObjects) => {
-	const fileHandle = await fsPromises.open(path, 'r');
+const readAll = async (database) => {
+	const {schema, objectLength, path, bodyStartPosition, bodyObjects, fileHandle} = database;
+	// const fileHandle = await fsPromises.open(path, 'r');
 	const readBuffer = new Uint8Array(bodyObjects*objectLength);
 	await fileHandle.read(readBuffer,0,bodyObjects*objectLength,bodyStartPosition)
 	let position = 0;
@@ -87,7 +88,7 @@ const readAll = async (schema, objectLength, path, bodyStartPosition, bodyLastPo
 		all.push(rowObject);
 		position += objectLength;
 	}
-	fileHandle.close();
+	// fileHandle.close();
 	return all;
 }
 
