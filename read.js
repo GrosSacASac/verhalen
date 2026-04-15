@@ -1,6 +1,10 @@
-export {stringFromBufferWithEmptySpace,
-	readRow, readRowFromPart, readRowPositionFromPart,
-	readAll/*, readRowRaw*/};
+export {
+	reversePadEmpty,
+	objectFromUint8,
+	readAll,
+	getRowPositionFromPart,
+	readRowPositionFromPart,
+};
 	
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
@@ -9,58 +13,23 @@ import {stringFromUint8Array, uint8ArrayFromString} from "./netzlech.js";
 import { deepEqualAdded } from "utilsac/deep.js";
 
 
-const extractStringFromStringWithEmptySpace = (string) => {
-        const indexOfNull = string.indexOf(empty);
-		let originalString;
-		if (indexOfNull !== -1) {
-			originalString = string.substring(0, indexOfNull);
-		} else {
-			originalString = string;
+const reversePadEmpty = (string) => {
+		const emptyIndex = string.indexOf(empty);
+		if (emptyIndex !== -1) {
+			return string.substring(0, emptyIndex)
 		}
-        return originalString;
+		return string;
 };
 
-const stringFromBufferWithEmptySpace = (buffer) => {
-	const string = String(buffer);
-	return extractStringFromStringWithEmptySpace(string);
-};
-
-const rowFromBuffer = (schema, readBuffer) => {
-	let cursor = 0;
-	const row = {};
-	schema.fields.forEach(({name, length}) => {
-		const end = cursor + length;
-		const subBuffer = readBuffer.subarray(cursor, end);
-		const string = String(subBuffer);
-		const indexOfNull = string.indexOf(empty);
-		let originalString;
-		if (indexOfNull !== -1) {
-			originalString = string.substring(0, indexOfNull);
-		} else {
-			originalString = string;
-		}
-		row[name] = originalString;
-		cursor = end;
+const objectFromUint8 = (schema, row) => {
+	const rowObject = {};
+	let localPosition = 0;
+	schema.forEach(({name, length}) => {
+		const substring = stringFromUint8Array(row.subarray(localPosition, localPosition + length));
+		rowObject[name] = reversePadEmpty(substring);
+		localPosition += length;
 	});
-	//console.log(row);
-};
-
-const readRowRaw = (filedescriptor, position, callBack) => {
-	/*todo make sure we read inside the file only*/
-	// search what is allocUnsafeSlow
-	const readBuffer = Buffer.allocUnsafeSlow(schema.fieldsLength);
-	fs.read(filedescriptor, readBuffer, 0, schema.fieldsLength, position, (error, bytesRead, _) => {
-		if (error) {
-			console.error(error);
-			return;
-		}
-		callBack(readBuffer)
-	});
-};
-
-const readRow = (schema, filedescriptor, rowPosition) => {
-	const position = rowPosition * schema.fieldsLength;
-	readRowRaw(filedescriptor, rowPosition, rowFromBuffer.bind(undefined, schema));
+	return objectFromUint8;
 };
 
 const readAll = async (database) => {
@@ -71,28 +40,14 @@ const readAll = async (database) => {
 	let position = 0;
 	const all=[];
 	while (position + objectLength <= readBuffer.byteLength) {
-		let row; /* = new Uint8Array(objectLength); */
-		row = readBuffer.subarray(position, position + objectLength);
-		const rowObject = {};
-		let localPosition = 0;
-		schema.forEach(({name, length}) => {
-			let substring = stringFromUint8Array(row.subarray(localPosition, localPosition + length));
-			const emptyIndex = substring.indexOf(empty);
-			if (emptyIndex !== -1) {
-				substring = substring.substring(0, emptyIndex)
-			}
-			rowObject[name] = substring;
-			localPosition += length;
-
-		});
+		const row = readBuffer.subarray(position, position + objectLength);
+		const rowObject = objectFromUint8(schema, row)
 		all.push(rowObject);
 		position += objectLength;
 	}
 	// fileHandle.close();
 	return all;
-}
-
-
+};
 
 const getRowPositionFromPart = (db, key, value, readBuffer) => {
 	/* given a schema,
@@ -141,23 +96,5 @@ const readRowPositionFromPart = async(db, key, value) => {
 	await fileHandle.read(readBuffer,0,bodyObjects*objectLength,maximumHeaderLength)
 	// fileHandle.close();
 	return getRowPositionFromPart(db, key, value, readBuffer);
-
 };
 
-const readRowFromPart = (schema, filedescriptor, endPosition, part, value) => {
-	const readBuffer = Buffer.allocUnsafeSlow(endPosition);
-	fs.read(filedescriptor, readBuffer, 0, endPosition, 0, (error, bytesRead, _) => {
-		if (error) {
-			console.error(error);
-			return;
-		}
-		
-		const start = getRowPositionFromPart(schema, endPosition, part, value, readBuffer);
-		if (start === -1) {
-			console.error(`${part} not found`);
-			return;
-		}
-		const end = start + schema.fieldsLength;
-		rowFromBuffer(schema, readBuffer.subarray(start, end));
-	});
-};
