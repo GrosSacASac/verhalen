@@ -2,8 +2,8 @@ export {
 	reversePadEmpty,
 	objectFromUint8,
 	readAll,
-	getRowPositionFromPart,
 	readRowPositionFromPart,
+	readEmptyRowPosition,
 };
 	
 import fs from "node:fs";
@@ -11,6 +11,9 @@ import fsPromises from "node:fs/promises";
 import {empty} from "./configuration.js";
 import {stringFromUint8Array, uint8ArrayFromString} from "./netzlech.js";
 import { deepEqualAdded } from "utilsac/deep.js";
+
+
+const EMPTY_BYTE = 0;
 
 
 const reversePadEmpty = (string) => {
@@ -29,7 +32,7 @@ const objectFromUint8 = (schema, row) => {
 		rowObject[name] = reversePadEmpty(substring);
 		localPosition += length;
 	});
-	return objectFromUint8;
+	return rowObject;
 };
 
 const readAll = async (database) => {
@@ -89,12 +92,33 @@ const getRowPositionFromPart = (db, key, value, readBuffer) => {
 	return -1;
 };
 
+const getEmptyRowPosition = (db, readBuffer) => {
+	const {objectLength} = db;
+	let cursor = 0;
+
+	while (cursor < readBuffer.length) {
+		const candidate = readBuffer.subarray(cursor, cursor + objectLength);
+		if (candidate.every(uint8 => {
+			return uint8 === EMPTY_BYTE;
+		})) {
+			return cursor;
+		}
+		cursor += objectLength;
+	}
+	return -1;
+};
+
 const readRowPositionFromPart = async(db, key, value) => {
 	const {path, bodyObjects, objectLength,maximumHeaderLength, fileHandle} = db;
-	// const fileHandle = await fsPromises.open(path, 'r');
 	const readBuffer = new Uint8Array(bodyObjects*objectLength);
 	await fileHandle.read(readBuffer,0,bodyObjects*objectLength,maximumHeaderLength)
-	// fileHandle.close();
 	return getRowPositionFromPart(db, key, value, readBuffer);
+};
+
+const readEmptyRowPosition = async(db) => {
+	const {path, bodyObjects, objectLength,maximumHeaderLength, fileHandle} = db;
+	const readBuffer = new Uint8Array(db.fileSize-maximumHeaderLength);
+	await fileHandle.read(readBuffer,0,db.fileSize-maximumHeaderLength,maximumHeaderLength)
+	return getEmptyRowPosition(db, readBuffer);
 };
 

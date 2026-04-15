@@ -15,7 +15,11 @@ import packageJson from "./package.json" with { type: 'json' };
 const {version, name} = packageJson;
 import {empty, entryBuffer, entryString} from "./configuration.js";
 import {uint8ArrayFromString} from "./netzlech.js";
-import {readRow, readRowFromPart, readRowPositionFromPart, readAll} from "./read.js";
+import {
+    readAll,
+	readRowPositionFromPart,
+	readEmptyRowPosition,
+} from "./read.js";
 import {writeObject, writeBufferAt, writeBlank} from "./write.js";
 
 
@@ -37,11 +41,20 @@ const objectLengthFromSchema = (schema) => {
 };
 
 const useDB = async(path, schema) => {
-    const alreadyCreated = fs.existsSync(path);
+    let stats;
+    try {
+        stats = fs.statSync(path);
+    } catch (statsError) {
+        if (statsError.code !== "ENOENT") {
+            // unexpected error
+            throw statsError;
+        }
+    }
+    const alreadyCreated = Boolean(stats);
     if (!alreadyCreated) {
         return createDB(path, schema);
     }
-    const db =  createDBInterface(path, schema);
+    const db =  createDBInterface(path, schema, stats);
     db.fileHandle = await fsPromises.open(path, WRITE_READ);
     return db;
 };
@@ -74,7 +87,7 @@ const createDB = (path, schema) => {
     });
 };
 
-const createDBInterface = (path, schema) => {
+const createDBInterface = (path, schema, stats={}) => {
     // todo validate format
     const bodyLength = 0;
     const schemaJSON = JSON.stringify(schema);
@@ -84,7 +97,7 @@ const createDBInterface = (path, schema) => {
     const objectLength = objectLengthFromSchema(schema);
     return {
         path,
-        fileSize: baseFileSize,
+        fileSize: stats.size || baseFileSize,
         schemaLength,
         headerLength,
         maximumHeaderLength: baseHeaderSize,
@@ -108,11 +121,12 @@ const appendObject = (database, object) => {
     const {schema, fileHandle, bodyLastPosition} = database;
     
     return new Promise(async (resolve, reject) => {
-
+        
         const newPosition = await writeObject(database, object);
         database.bodyLastPosition = newPosition;
         database.bodyObjects += 1;
         database.bodyLength += database.objectLength;
+        database.fileSize += database.objectLength,
         resolve();
         
     })
