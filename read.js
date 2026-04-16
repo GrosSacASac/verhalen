@@ -4,6 +4,7 @@ export {
 	readAll,
 	readRowPositionFromPart,
 	readEmptyRowPosition,
+	readEmptyRowPositions,
 };
 	
 import fs from "node:fs";
@@ -108,6 +109,24 @@ const getEmptyRowPosition = (db, readBuffer) => {
 	return -1;
 };
 
+const getEmptyRowPositions = (db, readBuffer) => {
+	// todo can we deduplicate logic with getEmptyRowPosition
+	const positions = [];
+	const {objectLength} = db;
+	let cursor = 0;
+
+	while (cursor < readBuffer.length) {
+		const candidate = readBuffer.subarray(cursor, cursor + objectLength);
+		if (candidate.every(uint8 => {
+			return uint8 === EMPTY_BYTE;
+		})) {
+			positions.push(cursor);
+		}
+		cursor += objectLength;
+	}
+	return positions;
+};
+
 const readRowPositionFromPart = async(db, key, value) => {
 	const {path, bodyObjects, objectLength,maximumHeaderLength, fileHandle} = db;
 	const readBuffer = new Uint8Array(bodyObjects*objectLength);
@@ -120,5 +139,12 @@ const readEmptyRowPosition = async(db) => {
 	const readBuffer = new Uint8Array(db.fileSize-maximumHeaderLength);
 	await fileHandle.read(readBuffer,0,db.fileSize-maximumHeaderLength,maximumHeaderLength)
 	return getEmptyRowPosition(db, readBuffer);
+};
+
+const readEmptyRowPositions = async(db) => {
+	const {path, bodyObjects, objectLength,maximumHeaderLength, fileHandle} = db;
+	const readBuffer = new Uint8Array(db.fileSize-maximumHeaderLength);
+	await fileHandle.read(readBuffer,0,db.fileSize-maximumHeaderLength,maximumHeaderLength)
+	return getEmptyRowPositions(db, readBuffer);
 };
 
