@@ -45,9 +45,14 @@ const readAll = async (database) => {
 	const all=[];
 	while (position + objectLength <= readBuffer.byteLength) {
 		const row = readBuffer.subarray(position, position + objectLength);
-		const rowObject = objectFromUint8(schema, row)
-		all.push(rowObject);
 		position += objectLength;
+		if (row.every(uint8 => {
+			return uint8 === EMPTY_BYTE;
+		})) {
+			continue; // empty slot
+		}
+		const rowObject = objectFromUint8(schema, row);
+		all.push(rowObject);
 	}
 	// fileHandle.close();
 	return all;
