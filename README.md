@@ -3,7 +3,7 @@
 todo
 
 ```
-bodyObjects is incorrect if the file already exists. make a quick scan on startup
+bodyLength is incorrect if the file already exists. do we need it ?
 make consumable with http, without extra work
 
 other than string (number, int32, int 64, date, lists, etc)

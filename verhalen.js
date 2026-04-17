@@ -60,6 +60,9 @@ const useDB = async(path, schema) => {
     const db =  createDBInterface(path, schema, stats);
     db.fileHandle = await fsPromises.open(path, WRITE_READ);
     db.emptyRowPositions = await readEmptyRowPositions(db);
+    db.bodyObjects = 
+        ((db.bodyLastPosition - db.maximumHeaderLength) / db.objectLength) -
+        (db.emptyRowPositions.length);
     return db;
 };
 
@@ -87,6 +90,9 @@ const createDB = (path, schema) => {
         int16View[6] = schemaLength;//write at 12th
         await writeBufferAt(fileHandle, firstBuffer, 0);
         db.emptyRowPositions = await readEmptyRowPositions(db);
+        db.bodyObjects = 
+            ((db.bodyLastPosition - db.maximumHeaderLength) / db.objectLength) -
+            (db.emptyRowPositions.length);
         resolve(database);
         
     });
