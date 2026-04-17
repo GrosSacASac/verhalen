@@ -61,7 +61,7 @@ const useDB = async(path, schema) => {
     db.fileHandle = await fsPromises.open(path, WRITE_READ);
     db.emptyRowPositions = await readEmptyRowPositions(db);
     db.bodyObjects = 
-        ((db.bodyLastPosition - db.maximumHeaderLength) / db.objectLength) -
+        Math.floor(((db.bodyLastPosition - db.maximumHeaderLength) / db.objectLength)) -
         (db.emptyRowPositions.length);
     return db;
 };
@@ -73,8 +73,8 @@ const createDB = (path, schema) => {
         const schemaJSON = JSON.stringify(schema);
         const schemaLength = schemaJSON.length;
 
-        const database = createDBInterface(path, schema);
-        database.fileHandle = fileHandle;
+        const db = createDBInterface(path, schema);
+        db.fileHandle = fileHandle;
         const firstBuffer = Uint8Array.of(
             ...uint8ArrayFromString(name),
             ...Uint8Array.from(versionSplit),
@@ -91,9 +91,9 @@ const createDB = (path, schema) => {
         await writeBufferAt(fileHandle, firstBuffer, 0);
         db.emptyRowPositions = await readEmptyRowPositions(db);
         db.bodyObjects = 
-            ((db.bodyLastPosition - db.maximumHeaderLength) / db.objectLength) -
+            Math.floor(((db.bodyLastPosition - db.maximumHeaderLength) / db.objectLength)) -
             (db.emptyRowPositions.length);
-        resolve(database);
+        resolve(db);
         
     });
 };
@@ -113,7 +113,7 @@ const createDBInterface = (path, schema, stats={}) => {
         headerLength,
         maximumHeaderLength: baseHeaderSize,
         bodyStartPosition: baseHeaderSize,
-        bodyLastPosition: stats.size || baseFileSize,
+        bodyLastPosition: (stats.size || baseFileSize),
         bodyObjects: 0,
         bodyLength,
         maximumBodyLength: baseFileSize - baseHeaderSize,
