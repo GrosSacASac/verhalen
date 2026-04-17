@@ -61,7 +61,7 @@ const useDB = async(path, schema) => {
     db.fileHandle = await fsPromises.open(path, WRITE_READ);
     db.emptyRowPositions = await readEmptyRowPositions(db);
     db.bodyObjects = 
-        Math.floor(((db.bodyLastPosition - db.maximumHeaderLength) / db.objectLength)) -
+        Math.ceil(((db.bodyLastPosition - db.maximumHeaderLength) / db.objectLength)) -
         (db.emptyRowPositions.length);
     return db;
 };
@@ -91,7 +91,7 @@ const createDB = (path, schema) => {
         await writeBufferAt(fileHandle, firstBuffer, 0);
         db.emptyRowPositions = await readEmptyRowPositions(db);
         db.bodyObjects = 
-            Math.floor(((db.bodyLastPosition - db.maximumHeaderLength) / db.objectLength)) -
+            Math.ceil(((db.bodyLastPosition - db.maximumHeaderLength) / db.objectLength)) -
             (db.emptyRowPositions.length);
         resolve(db);
         
