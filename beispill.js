@@ -1,7 +1,7 @@
 import {
     createDB,
     useDB,
-    appendObject,
+    addObject,
     closeDB,
     readAllObjects,
     deleteObject,
@@ -15,25 +15,25 @@ const db = await useDB("./people.verhalen", [
     {name: "color", length: 16},
 ]);
 
-await appendObject(db, {
+await addObject(db, {
     Name: "GrosSacASac",
     Bday: "2000-06-07",
     color: "red"
 });
 
-await appendObject(db, {
+await addObject(db, {
     Name: "TeddyBear",
     Bday: "2003-12-24",
     color: "brown"
 });
 
-await appendObject(db, {
+await addObject(db, {
     Name: "temp",
     Bday: "1999-01-01",
     color: "gold"
 });
 
-// db.bodyObjects = 2;
+
 
 console.log(await readAllObjects(db));
 

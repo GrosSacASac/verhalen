@@ -2,7 +2,9 @@ export {
     useDB,
     createDB,
     closeDB,
+    insertObject,
     appendObject,
+    addObject,
     replaceObject,
     deleteObject,
     readAllObjects,
@@ -19,6 +21,7 @@ import {
     readAll,
 	readRowPositionFromPart,
 	readEmptyRowPosition,
+    readEmptyRowPositions,
 } from "./read.js";
 import {writeObject, writeBufferAt, writeBlank} from "./write.js";
 
@@ -56,6 +59,7 @@ const useDB = async(path, schema) => {
     }
     const db =  createDBInterface(path, schema, stats);
     db.fileHandle = await fsPromises.open(path, WRITE_READ);
+    db.emptyRowPositions = await readEmptyRowPositions(db);
     return db;
 };
 
@@ -81,7 +85,8 @@ const createDB = (path, schema) => {
 
         const int16View = new Uint16Array(firstBuffer);
         int16View[6] = schemaLength;//write at 12th
-        await writeBufferAt(fileHandle, firstBuffer, 0)
+        await writeBufferAt(fileHandle, firstBuffer, 0);
+        db.emptyRowPositions = await readEmptyRowPositions(db);
         resolve(database);
         
     });
@@ -102,13 +107,14 @@ const createDBInterface = (path, schema, stats={}) => {
         headerLength,
         maximumHeaderLength: baseHeaderSize,
         bodyStartPosition: baseHeaderSize,
-        bodyLastPosition: baseHeaderSize,
+        bodyLastPosition: stats.size || baseFileSize,
         bodyObjects: 0,
         bodyLength,
         maximumBodyLength: baseFileSize - baseHeaderSize,
         schema,
         objectLength,
         filedescriptor:undefined,
+        emptyRowPosition: [],
     };
 };
 
@@ -126,10 +132,25 @@ const appendObject = (database, object) => {
         database.bodyLastPosition = newPosition;
         database.bodyObjects += 1;
         database.bodyLength += database.objectLength;
-        database.fileSize += database.objectLength,
+        database.fileSize += database.objectLength;
         resolve();
         
     })
+};
+
+const insertObject = (database, object) => {
+    const position = database.emptyRowPositions.shift();
+    database.bodyObjects += 1;
+    database.bodyLength += database.objectLength;
+    return writeObject(database, object, position + database.maximumHeaderLength);
+};
+
+const addObject = (database, object) => {
+    // inserts into empty space if possible, otherwise appends
+    if (database.emptyRowPositions.length === 0) {
+        return appendObject(database, object);
+    }
+    return insertObject(database, object);
 };
 
 const replaceObject = async (database, object, key, value) => {
@@ -150,7 +171,9 @@ const deleteObject = async (database, key, value) => {
     }
         
     await writeBlank(database, position + database.maximumHeaderLength);
+    database.emptyRowPositions.push(position);
     database.bodyObjects -= 1;
+    database.bodyLength -= database.objectLength;
 };
 
 const readAllObjects = (database) => {

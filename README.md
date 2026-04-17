@@ -3,7 +3,7 @@
 todo
 
 ```
-fsPromises.open(path, 'r') required ? when opened for write ?
+bodyObjects is incorrect if the file already exists. make a quick scan on startup
 make consumable with http, without extra work
 
 other than string (number, int32, int 64, date, lists, etc)
@@ -17,7 +17,7 @@ import {
     useDB,
     createDB,
     closeDB,
-    appendObject,
+    addObject,
     replaceObject,
     deleteObject,
     readAllObjects,
