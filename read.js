@@ -2,7 +2,8 @@ export {
 	reversePadEmpty,
 	objectFromUint8,
 	readAll,
-	readRowPositionFromPart,
+	readRowPositionFromCondition,
+	readObjectFromCondition,
 	readEmptyRowPosition,
 	readEmptyRowPositions,
 };
@@ -58,7 +59,7 @@ const readAll = async (database) => {
 	return all;
 };
 
-const getRowPositionFromPart = (db, key, value, readBuffer) => {
+const getRowPositionFromCondition = (db, key, condition, readBuffer) => {
 	/* given a schema,
     reads all rows with
     until it finds a row which has a part strictly equal to value
@@ -74,13 +75,13 @@ const getRowPositionFromPart = (db, key, value, readBuffer) => {
 		if (name === key) {
 			partLength = length;
             cursor = offset;
-			value = value.padEnd(length, empty)
+			// value = value.padEnd(length, empty);
 			return true;
 		}
 		offset += length;
 	});
-	const valueAsuint8 = uint8ArrayFromString(value);
-	const valueLengthBytes = (valueAsuint8.length);
+	// const valueAsuint8 = uint8ArrayFromString(value);
+	// const valueLengthBytes = (valueAsuint8.length);
 	
 	if (!found) {
 		console.error(`part ${part} not found in schema ${JSON.stringify(schema)}`);
@@ -88,8 +89,10 @@ const getRowPositionFromPart = (db, key, value, readBuffer) => {
 	}
 
 	while (cursor < readBuffer.length) {
-		const candidate = readBuffer.subarray(cursor, cursor + valueLengthBytes);
-		if (deepEqualAdded(valueAsuint8, candidate)) {
+		const candidate = readBuffer.subarray(cursor, cursor + partLength);
+		const asString = stringFromUint8Array(candidate);
+		// if (deepEqualAdded(valueAsuint8, candidate)) {
+		if (condition(asString)) {
 			cursor -= offset;
 			return cursor;
 		}
@@ -132,11 +135,11 @@ const getEmptyRowPositions = (db, readBuffer) => {
 	return positions;
 };
 
-const readRowPositionFromPart = async(db, key, value) => {
+const readRowPositionFromCondition = async(db, key, value) => {
 	const {path, bodyObjects, objectLength,maximumHeaderLength, fileHandle} = db;
 	const readBuffer = new Uint8Array(bodyObjects*objectLength);
 	await fileHandle.read(readBuffer,0,bodyObjects*objectLength,maximumHeaderLength)
-	return getRowPositionFromPart(db, key, value, readBuffer);
+	return getRowPositionFromCondition(db, key, value, readBuffer);
 };
 
 const readEmptyRowPosition = async(db) => {
@@ -153,3 +156,12 @@ const readEmptyRowPositions = async(db) => {
 	return getEmptyRowPositions(db, readBuffer);
 };
 
+
+const readObjectFromCondition = async(db, key, condition) => {
+	const {bodyObjects, objectLength,maximumHeaderLength, fileHandle, schema} = db;
+	const readBuffer = new Uint8Array(bodyObjects*objectLength);
+	await fileHandle.read(readBuffer,0,bodyObjects*objectLength,maximumHeaderLength)
+	const position = getRowPositionFromCondition(db, key, condition, readBuffer);
+	const objectBuffer = readBuffer.subarray(position, position + objectLength);
+	return objectFromUint8(schema, objectBuffer);
+};

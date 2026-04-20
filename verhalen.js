@@ -19,7 +19,8 @@ import {empty, entryBuffer, entryString} from "./configuration.js";
 import {uint8ArrayFromString} from "./netzlech.js";
 import {
     readAll,
-	readRowPositionFromPart,
+	readRowPositionFromCondition,
+    readObjectFromCondition,
 	readEmptyRowPosition,
     readEmptyRowPositions,
 } from "./read.js";
@@ -159,8 +160,8 @@ const addObject = (database, object) => {
     return insertObject(database, object);
 };
 
-const replaceObject = async (database, object, key, value) => {
-    const position =  await readRowPositionFromPart(database, key, value)
+const replaceObject = async (database, object, key, condition) => {
+    const position =  await readRowPositionFromCondition(database, key, condition)
     if (position === -1) {
         console.warn(`could not replace, it was not found`);
         return;
@@ -169,8 +170,8 @@ const replaceObject = async (database, object, key, value) => {
     return writeObject(database, object, position + database.maximumHeaderLength);
 };
 
-const deleteObject = async (database, key, value) => {
-    const position =  await readRowPositionFromPart(database, key, value)
+const deleteObject = async (database, key, condition) => {
+    const position =  await readRowPositionFromCondition(database, key, condition)
     if (position === -1) {
         console.warn(`could not delete, it was not found`);
         return;
@@ -186,7 +187,6 @@ const readAllObjects = (database) => {
     return readAll(database);
 };
 
-const readFind = async (database, filter) => {
-    const all = await readAll(database);
-    return all.find(filter);
+const readFind = (database, key, condition) => {
+    return readObjectFromCondition(database, key, condition);
 };

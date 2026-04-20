@@ -21,6 +21,7 @@ import {
     replaceObject,
     deleteObject,
     readAllObjects,
+    readFind,
 } from "verhalen";
 ```
 

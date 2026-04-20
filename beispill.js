@@ -1,10 +1,12 @@
 import {
-    createDB,
     useDB,
-    addObject,
+    createDB,
     closeDB,
-    readAllObjects,
+    addObject,
+    replaceObject,
     deleteObject,
+    readAllObjects,
+    readFind,
 } from "./verhalen.js";
 import fsPromises from "node:fs/promises";
 
@@ -37,9 +39,16 @@ await addObject(db, {
 
 console.log(await readAllObjects(db));
 
-await deleteObject(db, "Name", "temp");
+await deleteObject(db, "Name", (Name) => {return Name === "temp"});
+await replaceObject(db, {
+    Name: "GrosSacASacs",
+    Bday: "1999-02-02",
+    color: "metal green"
+}, "Name", (Name) => {return Name === "GrosSacASac"});
 
-console.log("after delete", await readAllObjects(db));
+console.log("after delete, replace", await readAllObjects(db));
+
+console.log("finding object that has color brown", await readFind(db, "color",(color) => {return color === "brown"}));
 
 await closeDB(db);
 
