@@ -2,8 +2,6 @@ export {
     useDB,
     createDB,
     closeDB,
-    insertObject,
-    appendObject,
     addObject,
     replaceObject,
     deleteObject,
@@ -122,6 +120,8 @@ const createDBInterface = (path, schema, stats={}) => {
         objectLength,
         filedescriptor:undefined,
         emptyRowPosition: [],
+        readLock: Promise.resolve(),
+        writeLock: Promise.resolve(),
     };
 };
 
@@ -130,19 +130,34 @@ const closeDB = (database) => {
     return fileHandle?.close(filedescriptor);
 };
 
-const appendObject = (database, object) => {
+const wLock = (writeBasedFunction) => async (db, ...args) => {
+    const {promise: thisLock, resolve} = Promise.withResolvers();
+    const previousWriteLock = db.writeLock;
+    db.writeLock = thisLock;
+    await Promise.allSettled([db.readLock, previousWriteLock]); // wait for previous read and write
+    const writePromise = writeBasedFunction(db, ...args);
+    await writePromise;
+    resolve();
+    return await writeBasedFunction;
+};
+
+const rLock = (readBasedFunction) => async (db, ...args) => {
+    const {promise: thisLock, resolve} = Promise.withResolvers();
+    db.readLock = thisLock;
+    await db.writeLock; // wait for previous write
+    const readPromise = readBasedFunction(db, ...args);
+    await readPromise;
+    resolve();
+    return await readPromise;
+};
+
+const appendObject = async (database, object) => {
     const {schema, fileHandle, bodyLastPosition} = database;
-    
-    return new Promise(async (resolve, reject) => {
-        
-        const newPosition = await writeObject(database, object);
-        database.bodyLastPosition = newPosition;
-        database.bodyObjects += 1;
-        database.bodyLength += database.objectLength;
-        database.fileSize += database.objectLength;
-        resolve();
-        
-    })
+    const newPosition = await writeObject(database, object);;
+    database.bodyLastPosition = newPosition;
+    database.bodyObjects += 1;
+    database.bodyLength += database.objectLength;
+    database.fileSize += database.objectLength;
 };
 
 const insertObject = (database, object) => {
@@ -152,15 +167,15 @@ const insertObject = (database, object) => {
     return writeObject(database, object, position + database.maximumHeaderLength);
 };
 
-const addObject = (database, object) => {
+const addObject = wLock((database, object) => {
     // inserts into empty space if possible, otherwise appends
     if (database.emptyRowPositions.length === 0) {
         return appendObject(database, object);
     }
     return insertObject(database, object);
-};
+});
 
-const replaceObject = async (database, object, key, condition) => {
+const replaceObject = wLock(async (database, object, key, condition) => {
     const position =  await readRowPositionFromCondition(database, key, condition)
     if (position === -1) {
         console.warn(`could not replace, it was not found`);
@@ -168,9 +183,9 @@ const replaceObject = async (database, object, key, condition) => {
     }
         
     return writeObject(database, object, position + database.maximumHeaderLength);
-};
+});
 
-const deleteObject = async (database, key, condition) => {
+const deleteObject = wLock(async (database, key, condition) => {
     const position =  await readRowPositionFromCondition(database, key, condition)
     if (position === -1) {
         console.warn(`could not delete, it was not found`);
@@ -181,12 +196,12 @@ const deleteObject = async (database, key, condition) => {
     database.emptyRowPositions.push(position);
     database.bodyObjects -= 1;
     database.bodyLength -= database.objectLength;
-};
+});
 
-const readAllObjects = (database) => {
+const readAllObjects = rLock((database) => {
     return readAll(database);
-};
+});
 
-const readFind = (database, key, condition) => {
+const readFind = rLock((database, key, condition) => {
     return readObjectFromCondition(database, key, condition);
-};
+});
