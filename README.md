@@ -7,6 +7,8 @@ bodyLength is incorrect if the file already exists. do we need it ?
 make consumable with http, without extra work
 
 other than string (number, int32, int 64, date, lists, etc)
+pagination (maybe use generators)
+locks to avoid reading while writing
 ```
 ## api
 
