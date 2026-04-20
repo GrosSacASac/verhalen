@@ -8,6 +8,9 @@ make consumable with http, without extra work
 
 other than string (number, int32, int 64, date, lists, etc)
 pagination (maybe use generators)
+tests
+types
+split readFind into a version that finds each (not just the first)
 ```
 ## api
 
