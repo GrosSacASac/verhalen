@@ -90,7 +90,7 @@ const getRowPositionFromCondition = (db, key, condition, readBuffer) => {
 
 	while (cursor < readBuffer.length) {
 		const candidate = readBuffer.subarray(cursor, cursor + partLength);
-		const asString = stringFromUint8Array(candidate);
+		const asString = reversePadEmpty(stringFromUint8Array(candidate));
 		// if (deepEqualAdded(valueAsuint8, candidate)) {
 		if (condition(asString)) {
 			cursor -= offset;
