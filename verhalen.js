@@ -130,6 +130,11 @@ const closeDB = (database) => {
     return fileHandle?.close(filedescriptor);
 };
 
+/**
+ * waits for previous read and write operations
+ * register itself as an ongoing write operation
+ * uses promise chaining 
+ */
 const wLock = (writeBasedFunction) => async (db, ...args) => {
     const {promise: thisLock, resolve} = Promise.withResolvers();
     const previousWriteLock = db.writeLock;
