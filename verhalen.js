@@ -36,10 +36,17 @@ const baseFileSize = 2000;
 const baseHeaderSize = 200;
 const versionSplit = version.split(".").map(Number)
 
+
 const objectLengthFromSchema = (schema) => {
     return schema.reduce((total, current) => {
         return current.length + total;
     }, 0);
+};
+
+const defaultSchema = (schema) => {
+    return schema.map(({name, length=1, type="string"}) => {
+        return {name, length, type};
+    });
 };
 
 const useDB = async(path, schema) => {
@@ -69,8 +76,6 @@ const createDB = (path, schema) => {
     return new Promise(async (resolve, reject) => {
         // r for read, a for append w for write will put null everythewhere or shrink the file
         const fileHandle = await fsPromises.open(path, WRITE_READ_CREATE);
-        const schemaJSON = JSON.stringify(schema);
-        const schemaLength = schemaJSON.length;
 
         const db = createDBInterface(path, schema);
         db.fileHandle = fileHandle;
@@ -80,13 +85,13 @@ const createDB = (path, schema) => {
             0, // empty byte
             0,
             0, //schema size 2 bytes
-            ...uint8ArrayFromString(schemaJSON),
+            ...uint8ArrayFromString(db.schemaJSON),
             // last known positions ?
             ...(new Uint8Array(baseFileSize)),
         );
 
         const int16View = new Uint16Array(firstBuffer);
-        int16View[6] = schemaLength;//write at 12th
+        int16View[6] = db.schemaLength;//write at 12th
         await writeBufferAt(fileHandle, firstBuffer, 0);
         db.emptyRowPositions = await readEmptyRowPositions(db);
         db.bodyObjects = 
@@ -100,15 +105,17 @@ const createDB = (path, schema) => {
 const createDBInterface = (path, schema, stats={}) => {
     // todo validate format
     const bodyLength = 0;
-    const schemaJSON = JSON.stringify(schema);
+    const schemaClean = defaultSchema(schema);
+    const schemaJSON = JSON.stringify(schemaClean);
     const schemaLength = (schemaJSON.length);
     const headerLength = 14 + schemaLength;
 
-    const objectLength = objectLengthFromSchema(schema);
+    const objectLength = objectLengthFromSchema(schemaClean);
     return {
         path,
         fileSize: stats.size || baseFileSize,
         schemaLength,
+        schemaJSON,
         headerLength,
         maximumHeaderLength: baseHeaderSize,
         bodyStartPosition: baseHeaderSize,
@@ -116,7 +123,7 @@ const createDBInterface = (path, schema, stats={}) => {
         bodyObjects: 0,
         bodyLength,
         maximumBodyLength: baseFileSize - baseHeaderSize,
-        schema,
+        schema: schemaClean,
         objectLength,
         filedescriptor:undefined,
         emptyRowPosition: [],

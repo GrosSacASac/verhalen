@@ -1,6 +1,6 @@
 export {
 	reversePadEmpty,
-	objectFromUint8,
+	objectFromUint8Array,
 	readAll,
 	readRowPositionFromCondition,
 	readObjectFromCondition,
@@ -26,12 +26,23 @@ const reversePadEmpty = (string) => {
 		return string;
 };
 
-const objectFromUint8 = (schema, row) => {
+const valueFromSubUint8Array = (subUint8Array, type) => {
+	let value;
+	if (type === "string") {
+		const substring = stringFromUint8Array(subUint8Array);
+		value = reversePadEmpty(substring);
+	} else if (type === "Uint8") {
+		value = subUint8Array[0];
+	}
+	return value;
+};
+
+const objectFromUint8Array = (schema, row) => {
 	const rowObject = {};
 	let localPosition = 0;
-	schema.forEach(({name, length}) => {
-		const substring = stringFromUint8Array(row.subarray(localPosition, localPosition + length));
-		rowObject[name] = reversePadEmpty(substring);
+	schema.forEach(({name, length, type}) => {
+		const localUint8Array = row.subarray(localPosition, localPosition + length);
+		rowObject[name] = valueFromSubUint8Array(localUint8Array, type)
 		localPosition += length;
 	});
 	return rowObject;
@@ -52,7 +63,7 @@ const readAll = async (database) => {
 		})) {
 			continue; // empty slot
 		}
-		const rowObject = objectFromUint8(schema, row);
+		const rowObject = objectFromUint8Array(schema, row);
 		all.push(rowObject);
 	}
 	// fileHandle.close();
@@ -70,11 +81,13 @@ const getRowPositionFromCondition = (db, key, condition, readBuffer) => {
 	let offset = 0
 	let cursor;
 	let partLength = 0;
+	let wantedType;
     
-	const found = schema.some(({name, length}) => {
+	const found = schema.some(({name, length, type}) => {
 		if (name === key) {
 			partLength = length;
             cursor = offset;
+			wantedType = type;
 			// value = value.padEnd(length, empty);
 			return true;
 		}
@@ -90,9 +103,9 @@ const getRowPositionFromCondition = (db, key, condition, readBuffer) => {
 
 	while (cursor < readBuffer.length) {
 		const candidate = readBuffer.subarray(cursor, cursor + partLength);
-		const asString = reversePadEmpty(stringFromUint8Array(candidate));
+		const value = valueFromSubUint8Array(candidate, wantedType);
 		// if (deepEqualAdded(valueAsuint8, candidate)) {
-		if (condition(asString)) {
+		if (condition(value)) {
 			cursor -= offset;
 			return cursor;
 		}
@@ -163,5 +176,5 @@ const readObjectFromCondition = async(db, key, condition) => {
 	await fileHandle.read(readBuffer,0,bodyObjects*objectLength,maximumHeaderLength)
 	const position = getRowPositionFromCondition(db, key, condition, readBuffer);
 	const objectBuffer = readBuffer.subarray(position, position + objectLength);
-	return objectFromUint8(schema, objectBuffer);
+	return objectFromUint8Array(schema, objectBuffer);
 };
