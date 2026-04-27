@@ -1,15 +1,15 @@
 # verhalen
 
-todo
+## todo
 
 ```
 bodyLength is incorrect if the file already exists. do we need it ?
 make consumable with http, without extra work
 
-other than string (number, int32, int 64, date, lists, etc)
+increase baseHeaderSize if schema does not find
+add more types ( int32, date, lists, etc)
 utf-8
 pagination (maybe use generators)
-tests
 test lock
 insert bulk
 refactor duplicate
@@ -17,6 +17,7 @@ refactor duplicate
 types
 split readFind into a version that finds each (not just the first)
 ```
+
 ## api
 
 ### import 

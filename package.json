@@ -4,8 +4,8 @@
   "description": "",
   "main": "verhalen.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "run": "node --experimental-modules useDbExample.js"
+    "test": "node --test --test-global-setup ./tests/end_to_end/setup_teardown.js",
+    "run": "node ./beispill.js"
   },
   "author": "",
   "license": "",
