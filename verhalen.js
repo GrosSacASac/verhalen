@@ -33,7 +33,7 @@ const APPEND = "a";
 
 const startPositionFile = 0;
 const baseFileSize = 2000;
-const baseHeaderSize = 200;
+const baseHeaderSize = 800;
 const versionSplit = version.split(".").map(Number)
 
 
@@ -45,6 +45,9 @@ const objectLengthFromSchema = (schema) => {
 
 const defaultSchema = (schema) => {
     return schema.map(({name, length=1, type="string"}) => {
+        if (type==="Number") {
+            length = 8;
+        }
         return {name, length, type};
     });
 };
@@ -90,7 +93,7 @@ const createDB = (path, schema) => {
             ...(new Uint8Array(baseFileSize)),
         );
 
-        const int16View = new Uint16Array(firstBuffer);
+        const int16View = new Uint16Array(firstBuffer.buffer);
         int16View[6] = db.schemaLength;//write at 12th
         await writeBufferAt(fileHandle, firstBuffer, 0);
         db.emptyRowPositions = await readEmptyRowPositions(db);

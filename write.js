@@ -1,4 +1,7 @@
-export {writeBufferAt, writeBlank, writeObject};
+export {writeBufferAt, writeBlank, writeObject,
+
+	uint8ArrayFromObject,
+};
 
 import {empty} from "./configuration.js";
 import fs from "node:fs";
@@ -16,6 +19,11 @@ const uint8ArrayFromObject = (schema, objectLength, object) => {
 		} else if (type === "Uint8") {
 			subUint8Array = new Uint8Array(1);
 			subUint8Array[0] = object[name];
+		} else if (type === "Number") {
+			// Number is 1 JS Float64Array 
+			subUint8Array = new Uint8Array(8);
+			const float64Array = new Float64Array(subUint8Array.buffer);
+			float64Array[0] = object[name];
 		}
 		uint8Array.set(subUint8Array, cursor);
 		cursor += length;

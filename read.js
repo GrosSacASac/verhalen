@@ -6,6 +6,8 @@ export {
 	readObjectFromCondition,
 	readEmptyRowPosition,
 	readEmptyRowPositions,
+
+	valueFromSubUint8Array,
 };
 	
 import fs from "node:fs";
@@ -33,6 +35,10 @@ const valueFromSubUint8Array = (subUint8Array, type) => {
 		value = reversePadEmpty(substring);
 	} else if (type === "Uint8") {
 		value = subUint8Array[0];
+	} else if (type === "Number") {
+		// console.log(subUint8Array);
+		const float64Array = new Float64Array(subUint8Array.buffer);
+		value = float64Array[0];
 	}
 	return value;
 };
