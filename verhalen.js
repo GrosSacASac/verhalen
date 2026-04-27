@@ -93,8 +93,9 @@ const createDB = (path, schema) => {
             ...(new Uint8Array(baseFileSize)),
         );
 
-        const int16View = new Uint16Array(firstBuffer.buffer);
-        int16View[6] = db.schemaLength;//write at 12th
+        //todo: do we need it ? if yes fix RangeError: byte length of Uint16Array should be a multiple of 2 which can happen depending of the size of firstBuffer
+        // const int16View = new Uint16Array(firstBuffer.buffer);
+        // int16View[6] = db.schemaLength;//write at 12th
         await writeBufferAt(fileHandle, firstBuffer, 0);
         db.emptyRowPositions = await readEmptyRowPositions(db);
         db.bodyObjects = 
