@@ -6,12 +6,12 @@ import red from "eslint-config-red";
 export default defineConfig([
     
 	{
-		files: ["**/*.js"],
+		files: [`**/*.js`],
 		plugins: {},
 		rules: {},
         extends: [
             js.configs.recommended,
             red,
-        ]
+        ],
 	},
 ]);

@@ -1,7 +1,7 @@
 export {
     stringFromUint8Array,
     uint8ArrayFromString,
-}
+};
 
 
 const textEncoder = new TextEncoder();

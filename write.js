@@ -12,17 +12,17 @@ const uint8ArrayFromObject = (schema, objectLength, object) => {
 	let cursor = 0;
 	schema.forEach(({name, length, type}) => {
 		let subUint8Array;
-		if (type === "string") {
+		if (type === `string`) {
 			subUint8Array = uint8ArrayFromString(object[name]);
-		} else if (type === "Uint8") {
+		} else if (type === `Uint8`) {
 			subUint8Array = new Uint8Array(1);
 			subUint8Array[0] = object[name];
-		} else if (type === "Uint32") {
+		} else if (type === `Uint32`) {
 			// Number is 1 JS Float64Array 
 			subUint8Array = new Uint8Array(4);
 			const uint32Array = new Uint32Array(subUint8Array.buffer);
 			uint32Array[0] = object[name];
-		} else if (type === "Number") {
+		} else if (type === `Number`) {
 			// Number is 1 JS Float64Array 
 			subUint8Array = new Uint8Array(8);
 			const float64Array = new Float64Array(subUint8Array.buffer);
@@ -37,7 +37,7 @@ const uint8ArrayFromObject = (schema, objectLength, object) => {
 };
 /* there seems to be a problem with wirte appending marks everything with null or resetts the length */
 const writeBufferAt = async (fileHandle, buffer, position) => {
-	await fileHandle.write(buffer, 0, buffer.length, position)
+	await fileHandle.write(buffer, 0, buffer.length, position);
 	
 	return position + buffer.length;
 };
@@ -55,7 +55,7 @@ const writeObject = async (database, object, position = database.bodyLastPositio
 const writeBlank = (database, position = database.bodyLastPosition) => {
 	return writeBufferAt(
 		database.fileHandle,
-		uint8ArrayFromString("".padEnd(database.objectLength, empty)),
-		position
+		uint8ArrayFromString(``.padEnd(database.objectLength, empty)),
+		position,
 	);
 };

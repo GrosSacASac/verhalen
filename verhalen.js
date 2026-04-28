@@ -11,7 +11,7 @@ export {
 
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
-import packageJson from "./package.json" with { type: 'json' };
+import packageJson from "./package.json" with { type: `json` };
 const {version, name} = packageJson;
 import {uint8ArrayFromString} from "./netzlech.js";
 import {
@@ -24,16 +24,16 @@ import {
 import {writeObject, writeBufferAt, writeBlank} from "./write.js";
 
 
-const WRITE = "w";
-const WRITE_READ = "r+";
-const WRITE_READ_CREATE = "w+";
-const READ = "r";
-const APPEND = "a";
+const WRITE = `w`;
+const WRITE_READ = `r+`;
+const WRITE_READ_CREATE = `w+`;
+const READ = `r`;
+const APPEND = `a`;
 
 const startPositionFile = 0;
 const baseFileSize = 2000;
 const baseHeaderSize = 800;
-const versionSplit = version.split(".").map(Number)
+const versionSplit = version.split(`.`).map(Number);
 
 
 const objectLengthFromSchema = (schema) => {
@@ -43,10 +43,10 @@ const objectLengthFromSchema = (schema) => {
 };
 
 const defaultSchema = (schema) => {
-    return schema.map(({name, length=1, type="string"}) => {
-        if (type==="Uint32") {
+    return schema.map(({name, length = 1, type = "string"}) => {
+        if (type === "Uint32") {
             length = 4;
-        } else if (type==="Number") {
+        } else if (type === "Number") {
             length = 8;
         }
         return {name, length, type};
@@ -58,7 +58,7 @@ const useDB = async(path, schema) => {
     try {
         stats = fs.statSync(path);
     } catch (statsError) {
-        if (statsError.code !== "ENOENT") {
+        if (statsError.code !== `ENOENT`) {
             // unexpected error
             throw statsError;
         }
@@ -107,7 +107,7 @@ const createDB = (path, schema) => {
     });
 };
 
-const createDBInterface = (path, schema, stats={}) => {
+const createDBInterface = (path, schema, stats = {}) => {
     // todo validate format
     const bodyLength = 0;
     const schemaClean = defaultSchema(schema);
@@ -147,7 +147,7 @@ const closeDB = (database) => {
  * register itself as an ongoing write operation
  * uses promise chaining 
  */
-const wLock = (writeBasedFunction) => async (db, ...args) => {
+const wLock = (writeBasedFunction) => {return async (db, ...args) => {
     const {promise: thisLock, resolve} = Promise.withResolvers();
     const previousWriteLock = db.writeLock;
     db.writeLock = thisLock;
@@ -156,9 +156,9 @@ const wLock = (writeBasedFunction) => async (db, ...args) => {
     await writePromise;
     resolve();
     return await writeBasedFunction;
-};
+}};
 
-const rLock = (readBasedFunction) => async (db, ...args) => {
+const rLock = (readBasedFunction) => {return async (db, ...args) => {
     const {promise: thisLock, resolve} = Promise.withResolvers();
     db.readLock = thisLock;
     await db.writeLock; // wait for previous write
@@ -166,7 +166,7 @@ const rLock = (readBasedFunction) => async (db, ...args) => {
     await readPromise;
     resolve();
     return await readPromise;
-};
+}};
 
 const appendObject = async (database, object) => {
     const {schema, fileHandle, bodyLastPosition} = database;
@@ -193,7 +193,7 @@ const addObject = wLock((database, object) => {
 });
 
 const replaceObject = wLock(async (database, object, key, condition) => {
-    const position =  await readRowPositionFromCondition(database, key, condition)
+    const position =  await readRowPositionFromCondition(database, key, condition);
     if (position === -1) {
         console.warn(`could not replace, it was not found`);
         return;
@@ -203,7 +203,7 @@ const replaceObject = wLock(async (database, object, key, condition) => {
 });
 
 const deleteObject = wLock(async (database, key, condition) => {
-    const position =  await readRowPositionFromCondition(database, key, condition)
+    const position =  await readRowPositionFromCondition(database, key, condition);
     if (position === -1) {
         console.warn(`could not delete, it was not found`);
         return;
