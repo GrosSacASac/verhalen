@@ -15,7 +15,7 @@ const uint8ArrayFromObject = (schema, objectLength, object) => {
 	schema.forEach(({name, length, type}) => {
 		let subUint8Array;
 		if (type === "string") {
-			subUint8Array = uint8ArrayFromString(object[name].padEnd(length, empty));
+			subUint8Array = uint8ArrayFromString(object[name]);
 		} else if (type === "Uint8") {
 			subUint8Array = new Uint8Array(1);
 			subUint8Array[0] = object[name];

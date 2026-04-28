@@ -4,17 +4,13 @@ export {
 }
 
 
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
 const stringFromUint8Array = (uint8array) => {
-
-    //convert to array to have the .map function be able to return non-uint8
-    return Array.from(uint8array).map(uint8 => {
-        return String.fromCodePoint(uint8);
-    }).join("");
+    return textDecoder.decode(uint8array);
 };
 
 const uint8ArrayFromString = (string) => {
-    return Uint8Array.from(Array.from(string).map(character => {
-        return character.charCodeAt(0);
-    }));
+    return textEncoder.encode(string);
 };
 

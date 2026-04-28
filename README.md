@@ -124,7 +124,6 @@ make consumable with http, without extra work
 
 increase baseHeaderSize if schema does not find
 add more types (date, lists, etc)
-utf-8
 pagination (maybe use generators)
 test lock
 insert bulk

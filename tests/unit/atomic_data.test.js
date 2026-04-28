@@ -25,6 +25,22 @@ test("read write Number", (t) => {
     })
 });
 
+test("read write utf-8", (t) => {
+    const length = 64;
+    const schema = [{ name: "name", length, type:"string"}];
+    [
+        "桁",
+        "café",
+        "😂",
+    ].forEach((utf8String) => {
+        const object = {name: utf8String};
+        const uint8 = uint8ArrayFromObject(schema,length, object);
+        const reconstituted = valueFromSubUint8Array(uint8, "string");
+        assert.equal(reconstituted, object.name);
+        // assert(deepEqualAdded(numberReconstituted, object.Number));
+    })
+});
+
 test.expectFailure("Float64Array cannot use a common arraybuffer that is not divisible by its byte length (8)", (t) => {
     const a = (new Uint8Array(25)).subarray(0,24); // subarray uses the same underlying buffer
     const f = new Float64Array(a.buffer);
