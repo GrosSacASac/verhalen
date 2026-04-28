@@ -18,7 +18,7 @@ A schema defines the shape of the data. Example:
 ]
 ```
 
-Length is required for types with variable length like string. Type default is "string". Name is the key of the key for the kind of object that you put in or pull out of the database. For example with this kind of schema you could then add the following object in your database:
+Length is required for types with variable length like string. Type default is "string". Key is the name of the key-value pair for the kind of object that you put in or pull out of the database. For example with this kind of schema you could then add the following object in your database:
 
 ```js
 await addObject(db, {
