@@ -24,3 +24,20 @@ test("read write Number", (t) => {
         // assert(deepEqualAdded(numberReconstituted, object.Number));
     })
 });
+
+test.expectFailure("Float64Array cannot use a common arraybuffer that is not divisible by its byte length (8)", (t) => {
+    const a = (new Uint8Array(25)).subarray(0,24); // subarray uses the same underlying buffer
+    const f = new Float64Array(a.buffer);
+});
+
+test("Float64Array can use a common arraybuffer that is divisible by its byte length (8)", (t) => {
+    [
+        new Uint8Array(8),
+        new Uint8Array(16),
+        new Uint8Array(24),
+        (new Uint8Array(25)).slice(0,24), // subarray uses the same underlying buffer
+    ].forEach((uint8Array) => {
+        const f = new Float64Array(uint8Array.buffer);
+        assert(true);
+    })
+});
