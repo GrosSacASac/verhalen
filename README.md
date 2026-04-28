@@ -1,22 +1,5 @@
 # verhalen
 
-## todo
-
-```
-bodyLength is incorrect if the file already exists. do we need it ?
-make consumable with http, without extra work
-
-increase baseHeaderSize if schema does not find
-add more types ( int32, date, lists, etc)
-utf-8
-pagination (maybe use generators)
-test lock
-insert bulk
-refactor duplicate
-
-types
-split readFind into a version that finds each (not just the first)
-```
 ## Concepts
 
 ### Schema
@@ -31,6 +14,18 @@ A schema defines the shape of the data. Example:
     {name: "int8", type: "Uint8"},
     {name: "number", type: "Number"},
 ]
+```
+
+Length is required for types with variable length like string. Type default is "string". Name is the name of the key for the kind of object that you put in or pull out of the database. For example with this kind of schema you could then add the following object in your database:
+
+```js
+await addObject(db, {
+    Name: "TeddyBear",
+    Bday: "2003-12-24",
+    color: "brown",
+    int8: 1,
+    number: 9999,
+});
 ```
 
 #### Types
@@ -113,3 +108,22 @@ Each field (according to the schema used during creation)
 #### Field
 
 Field data or empty space, followed by empty space if length is smaller than field length
+
+
+## todo
+
+```
+bodyLength is incorrect if the file already exists. do we need it ?
+make consumable with http, without extra work
+
+increase baseHeaderSize if schema does not find
+add more types (date, lists, etc)
+utf-8
+pagination (maybe use generators)
+test lock
+insert bulk
+refactor duplicate
+
+types
+split readFind into a version that finds each (not just the first)
+```
