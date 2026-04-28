@@ -81,4 +81,8 @@ suite("end to end", async () => {
         assert.deepStrictEqual((await readFind(db, "int8", (i) => {return i === o2.int8})), o2);
     });
 
+    await test("database returns undefined if what searched is absent", async () => {
+        assert.deepStrictEqual((await readFind(db, "int8", (i) => {return i === Symbol()})), undefined);
+    });
+
 });

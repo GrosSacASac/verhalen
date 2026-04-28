@@ -183,6 +183,9 @@ const readObjectFromCondition = async(db, key, condition) => {
 	const readBuffer = new Uint8Array(bodyObjects*objectLength);
 	await fileHandle.read(readBuffer,0,bodyObjects*objectLength,maximumHeaderLength)
 	const position = getRowPositionFromCondition(db, key, condition, readBuffer);
+	if (position === -1) {
+		return;
+	}
 	const objectBuffer = readBuffer.subarray(position, position + objectLength);
 	return objectFromUint8Array(schema, objectBuffer);
 };
