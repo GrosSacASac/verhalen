@@ -17,6 +17,42 @@ refactor duplicate
 types
 split readFind into a version that finds each (not just the first)
 ```
+## Concepts
+
+### Schema
+
+A schema defines the shape of the data. Example:
+
+```js
+[
+    {name: "Name", length: 16},
+    {name: "Bday", length: 10},
+    {name: "color", length: 16},
+    {name: "int8", type: "Uint8"},
+    {name: "number", type: "Number"},
+]
+```
+
+#### Types
+
+```js
+"string"
+```
+
+For storing strings. Use the length to describe the max length.
+
+```js
+"Number"
+```
+
+For storing numbers equivalent to the JS builtin Number (64 bits floating).
+
+```js
+"Uint8"
+```
+
+For storing numbers from 0 to 255.
+
 
 ## api
 
