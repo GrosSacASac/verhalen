@@ -10,26 +10,13 @@
     "test-unit": "node --test \"tests/unit/**.test.js\"",
     "test-end_to_end": "node --test \"tests/end_to_end/**.test.js\"",
     "run": "node ./beispill.js",
-    "lint-fix": "eslint --ignore-path .gitignore --fix",
-    "lint": "eslint --ignore-path .gitignore"
+    "lint-fix": "eslint --ignore-pattern .gitignore --fix",
+    "lint": "eslint --ignore-pattern .gitignore"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "eslint": "^10.2.1",
-    "eslint-config-red": "^1.9.1"
-  },
-  "eslintConfig": {
-    "extends": ["red"],
-    "parserOptions": {
-      "ecmaVersion": "latest",
-      "sourceType": "module",
-      "ecmaFeatures": {}
-    },
-    "env": {
-      "es2026": true,
-      "browser": true,
-      "node": true
-    },
-    "rules": {}
+    "eslint-config-red": "^2.0.0"
   },
   "files": [
     "README.MD",
@@ -43,5 +30,8 @@
     "type": "git",
     "url": "git://github.com/GrosSacASac/verhalen.git"
   },
-  "keywords": ["database", "schema"]
+  "keywords": [
+    "database",
+    "schema"
+  ]
 }
