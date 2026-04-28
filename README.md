@@ -1,5 +1,7 @@
 # verhalen
 
+Schema based database for JS
+
 ## Concepts
 
 ### Schema
@@ -23,12 +25,14 @@ await addObject(db, {
     Name: "TeddyBear",
     Bday: "2003-12-24",
     color: "brown",
-    int8: 1,
     number: 9999,
 });
 ```
 
+
 #### Types
+
+Types describe what kind of data is stored. 
 
 ```js
 "string"
@@ -54,6 +58,9 @@ For storing numbers from 0 to 255.
 
 For storing numbers from 0 to 2**32-1.
 
+### Objects
+
+Objects are data pieces used in programs that contain atomic data types like strings and numbers. Each object stored in the database will take exactly as much space as the sum of its properties lengths.
 
 ## api
 
@@ -72,7 +79,67 @@ import {
 } from "verhalen";
 ```
 
-### createDB
+### useDB
+
+Will use or create the db if the file does not exist. It returns the db object used by the rest of the methods.
+
+`const db = useDB(path, schema);`
+
+### closeDB
+
+Will close the db file descriptor.
+
+`closeDB(path, schema);`
+
+### addObject
+
+Adds an object to the database.
+
+```js
+await addObject(db, {
+    Name: "GrosSacASac",
+    Bday: "2000-06-07",
+    color: "red",
+    number: 2026,
+});
+```
+
+### replaceObject
+
+Replaces an object with another in the database. Most useful to update a specific objects. The first 2 arguments are the database and the new object. The third and fourth argument are the property to look for and the find function. It replace the first object where the condition returns true 
+
+```js
+await replaceObject(db, {
+    Name: "GrosSacASacs",
+    Bday: "1999-02-02",
+    color: "metal green",
+    number: 2027,
+}, "Name", (Name) => {return Name === "GrosSacASac"});
+```
+
+### deleteObject
+
+Deletes an object in the database. The first argument is the database. The last 2 arguments are similar to replaceObject.
+
+```js
+await deleteObject(db, "Name", ((Name) => {return Name === "GrosSacASac"}));
+```
+
+### readFind
+
+Returns the first object found. The last 2 arguments are similar to replaceObject. Returns undefined if object is not found.
+
+```js
+const object = await readFind(db, "Name", ((Name) => {return Name === "GrosSacASac"}));
+```
+
+### readAllObjects
+
+Returns an array with all the objects in the database
+
+```js
+const allObjects = await readAllObjects(db);
+```
 
 
 
@@ -115,8 +182,13 @@ Each field (according to the schema used during creation)
 
 Field data or empty space, followed by empty space if length is smaller than field length
 
+## About
 
-## todo
+### Translation
+
+verhalen means remember
+
+### todo
 
 ```
 bodyLength is incorrect if the file already exists. do we need it ?
