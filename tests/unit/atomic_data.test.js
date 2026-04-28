@@ -1,6 +1,5 @@
 import test from "node:test";
 import assert from "node:assert";
-import { deepEqualAdded } from "utilsac/deep.js";
 
 import {uint8ArrayFromObject} from "../../write.js";
 import {valueFromSubUint8Array} from "../../read.js";

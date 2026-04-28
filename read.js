@@ -9,12 +9,9 @@ export {
 
 	valueFromSubUint8Array,
 };
-	
-import fs from "node:fs";
-import fsPromises from "node:fs/promises";
+
 import {empty} from "./configuration.js";
 import {stringFromUint8Array, uint8ArrayFromString} from "./netzlech.js";
-import { deepEqualAdded } from "utilsac/deep.js";
 
 
 const EMPTY_BYTE = 0;

@@ -4,8 +4,6 @@ export {writeBufferAt, writeBlank, writeObject,
 };
 
 import {empty} from "./configuration.js";
-import fs from "node:fs";
-import fsPromises from "node:fs/promises";
 import { uint8ArrayFromString } from "./netzlech.js";
 
 

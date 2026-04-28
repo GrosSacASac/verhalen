@@ -13,7 +13,6 @@ import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import packageJson from "./package.json" with { type: 'json' };
 const {version, name} = packageJson;
-import {empty, entryBuffer, entryString} from "./configuration.js";
 import {uint8ArrayFromString} from "./netzlech.js";
 import {
     readAll,
