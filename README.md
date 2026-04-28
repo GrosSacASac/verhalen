@@ -188,6 +188,11 @@ Field data or empty space, followed by empty space if length is smaller than fie
 
 verhalen means remember
 
+
+### License
+
+MIT
+
 ### todo
 
 ```

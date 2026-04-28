@@ -2,6 +2,7 @@
   "name": "verhalen",
   "version": "3.0.0",
   "description": "",
+  "license": "MIT",
   "main": "verhalen.js",
   "scripts": {
     "test": "node --test --test-global-setup ./tests/end_to_end/setup_teardown.js",
@@ -18,6 +19,5 @@
     "configuration.js"
   ],
   "author": "",
-  "license": "",
   "type": "module"
 }
