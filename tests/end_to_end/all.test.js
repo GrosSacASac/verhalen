@@ -49,23 +49,28 @@ suite("end to end", async () => {
         {name: "number", type: "Number"},
     ]);
 
-    await addObject(db, o1);
-    await addObject(db, o2);
-    await addObject(db, o3);
+    await test("add", async () => {
+        await addObject(db, o1);
+        await addObject(db, o2);
+        await addObject(db, o3);
+    });
 
     await test("database contains what we just added", async () => {
         assert.deepStrictEqual(await readAllObjects(db), [o1, o2, o3]);
     });
 
 
-    await deleteObject(db, "string", (s) => {return s === o3.string});
-
+    await test("delete", async () => {
+        await deleteObject(db, "string", (s) => {return s === o3.string});
+    });
 
     await test("database does not contain what we removed", async () => {
         assert.deepStrictEqual(await readAllObjects(db), [o1, o2]);
     });
 
-    await replaceObject(db, o1bis, "string", (s) => {return s === "GrosSacASac"});
+    await test("replace", async () => {
+        await replaceObject(db, o1bis, "string", (s) => {return s === "GrosSacASac"});
+    });
 
     await test("database contains what we just replaced", async () => {
         assert.deepStrictEqual(await readAllObjects(db), [o1bis, o2]);
