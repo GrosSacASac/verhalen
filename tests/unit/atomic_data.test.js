@@ -35,7 +35,7 @@ test("Float64Array can use a common arraybuffer that is divisible by its byte le
         new Uint8Array(8),
         new Uint8Array(16),
         new Uint8Array(24),
-        (new Uint8Array(25)).slice(0,24), // subarray uses the same underlying buffer
+        (new Uint8Array(25)).slice(0,24), // slice create a new underlying buffer
     ].forEach((uint8Array) => {
         const f = new Float64Array(uint8Array.buffer);
         assert(true);

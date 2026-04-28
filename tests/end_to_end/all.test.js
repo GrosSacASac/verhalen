@@ -54,7 +54,7 @@ suite("end to end", async () => {
     await addObject(db, o3);
 
     await test("database contains what we just added", async () => {
-        assert.equal(await readAllObjects(db), [o1, o2, o3]);
+        assert.deepStrictEqual(await readAllObjects(db), [o1, o2, o3]);
     });
 
 
@@ -62,18 +62,18 @@ suite("end to end", async () => {
 
 
     await test("database does not contain what we removed", async () => {
-        assert.equal(await readAllObjects(db), [o1, o2]);
+        assert.deepStrictEqual(await readAllObjects(db), [o1, o2]);
     });
 
     await replaceObject(db, o1bis, "string", (s) => {return s === "GrosSacASac"});
 
     await test("database contains what we just replaced", async () => {
-        assert.equal(await readAllObjects(db), [o1bis, o2]);
+        assert.deepStrictEqual(await readAllObjects(db), [o1bis, o2]);
     });
 
 
     await test("database finds what search", async () => {
-        assert.equal((await readFind(db, "int8", (i) => {return i === o2.int8})), o2);
+        assert.deepStrictEqual((await readFind(db, "int8", (i) => {return i === o2.int8})), o2);
     });
 
 });

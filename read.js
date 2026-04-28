@@ -47,7 +47,7 @@ const objectFromUint8Array = (schema, row) => {
 	const rowObject = {};
 	let localPosition = 0;
 	schema.forEach(({name, length, type}) => {
-		const localUint8Array = row.subarray(localPosition, localPosition + length);
+		const localUint8Array = row.slice(localPosition, localPosition + length);
 		rowObject[name] = valueFromSubUint8Array(localUint8Array, type)
 		localPosition += length;
 	});
@@ -108,7 +108,7 @@ const getRowPositionFromCondition = (db, key, condition, readBuffer) => {
 	}
 
 	while (cursor < readBuffer.length) {
-		const candidate = readBuffer.subarray(cursor, cursor + partLength);
+		const candidate = readBuffer.slice(cursor, cursor + partLength);
 		const value = valueFromSubUint8Array(candidate, wantedType);
 		// if (deepEqualAdded(valueAsuint8, candidate)) {
 		if (condition(value)) {
