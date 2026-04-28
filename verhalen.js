@@ -45,7 +45,9 @@ const objectLengthFromSchema = (schema) => {
 
 const defaultSchema = (schema) => {
     return schema.map(({name, length=1, type="string"}) => {
-        if (type==="Number") {
+        if (type==="Uint32") {
+            length = 4;
+        } else if (type==="Number") {
             length = 8;
         }
         return {name, length, type};

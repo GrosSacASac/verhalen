@@ -15,7 +15,8 @@ const db = await useDB("./leit.verhalen", [
     {name: "Name", length: 16},
     {name: "Bday", length: 10},
     {name: "color", length: 16},
-    {name: "int8", type: "Uint8"},
+    {name: "uint32", type: "Uint32"},
+    {name: "uint8", type: "Uint8"},
     {name: "number", type: "Number"},
 ]);
 
@@ -23,7 +24,8 @@ await addObject(db, {
     Name: "GrosSacASac",
     Bday: "2000-06-07",
     color: "red",
-    int8: 8,
+    uint8: 8,
+    uint32: 2**32-1,
     number: 2026,
 });
 
@@ -31,7 +33,8 @@ await addObject(db, {
     Name: "TeddyBear",
     Bday: "2003-12-24",
     color: "brown",
-    int8: 1,
+    uint8: 1,
+    uint32: 2**10,
     number: 9999,
 });
 
@@ -39,7 +42,8 @@ await addObject(db, {
     Name: "temp",
     Bday: "1999-01-01",
     color: "gold",
-    int8: 0,
+    uint8: 0,
+    uint32: 10**10,
     number: 10**100,
 });
 
@@ -52,7 +56,8 @@ await replaceObject(db, {
     Name: "GrosSacASacs",
     Bday: "1999-02-02",
     color: "metal green",
-    int8: 94,
+    uint8: 94,
+    uint32: 2**32-1,
     number: 2027,
 }, "Name", (Name) => {return Name === "GrosSacASac"});
 

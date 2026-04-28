@@ -48,6 +48,12 @@ For storing numbers equivalent to the JS builtin Number (64 bits floating).
 
 For storing numbers from 0 to 255.
 
+```js
+"Uint32"
+```
+
+For storing numbers from 0 to 2**32-1.
+
 
 ## api
 

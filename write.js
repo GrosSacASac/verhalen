@@ -19,6 +19,11 @@ const uint8ArrayFromObject = (schema, objectLength, object) => {
 		} else if (type === "Uint8") {
 			subUint8Array = new Uint8Array(1);
 			subUint8Array[0] = object[name];
+		} else if (type === "Uint32") {
+			// Number is 1 JS Float64Array 
+			subUint8Array = new Uint8Array(4);
+			const uint32Array = new Uint32Array(subUint8Array.buffer);
+			uint32Array[0] = object[name];
 		} else if (type === "Number") {
 			// Number is 1 JS Float64Array 
 			subUint8Array = new Uint8Array(8);
