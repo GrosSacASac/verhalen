@@ -10,23 +10,23 @@ import { uint8ArrayFromString } from "./netzlech.js";
 const uint8ArrayFromObject = (schema, objectLength, object) => {
 	const uint8Array = new Uint8Array(objectLength);
 	let cursor = 0;
-	schema.forEach(({name, length, type}) => {
+	schema.forEach(({key, length, type}) => {
 		let subUint8Array;
 		if (type === `string`) {
-			subUint8Array = uint8ArrayFromString(object[name]);
+			subUint8Array = uint8ArrayFromString(object[key]);
 		} else if (type === `Uint8`) {
 			subUint8Array = new Uint8Array(1);
-			subUint8Array[0] = object[name];
+			subUint8Array[0] = object[key];
 		} else if (type === `Uint32`) {
 			// Number is 1 JS Float64Array 
 			subUint8Array = new Uint8Array(4);
 			const uint32Array = new Uint32Array(subUint8Array.buffer);
-			uint32Array[0] = object[name];
+			uint32Array[0] = object[key];
 		} else if (type === `Number`) {
 			// Number is 1 JS Float64Array 
 			subUint8Array = new Uint8Array(8);
 			const float64Array = new Float64Array(subUint8Array.buffer);
-			float64Array[0] = object[name];
+			float64Array[0] = object[key];
 		}
 		uint8Array.set(subUint8Array, cursor);
 		cursor += length;

@@ -44,9 +44,9 @@ suite(`end to end`, async () => {
     });
 
     const db = await useDB(globalThis.testDatabase, [
-        {name: `string`, length: 20},
-        {name: `int8`, type: `Uint8`},
-        {name: `number`, type: `Number`},
+        {key: `string`, length: 20},
+        {key: `int8`, type: `Uint8`},
+        {key: `number`, type: `Number`},
     ]);
 
     await test(`add`, async () => {

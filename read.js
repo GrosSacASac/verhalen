@@ -11,7 +11,7 @@ export {
 };
 
 import {empty} from "./configuration.js";
-import {stringFromUint8Array, uint8ArrayFromString} from "./netzlech.js";
+import {stringFromUint8Array} from "./netzlech.js";
 
 
 const EMPTY_BYTE = 0;
@@ -45,17 +45,16 @@ const valueFromSubUint8Array = (subUint8Array, type) => {
 const objectFromUint8Array = (schema, row) => {
 	const rowObject = {};
 	let localPosition = 0;
-	schema.forEach(({name, length, type}) => {
+	schema.forEach(({key, length, type}) => {
 		const localUint8Array = row.slice(localPosition, localPosition + length);
-		rowObject[name] = valueFromSubUint8Array(localUint8Array, type);
+		rowObject[key] = valueFromSubUint8Array(localUint8Array, type);
 		localPosition += length;
 	});
 	return rowObject;
 };
 
 const readAll = async (database) => {
-	const {schema, objectLength, path, bodyStartPosition, bodyObjects, fileHandle} = database;
-	// const fileHandle = await fsPromises.open(path, 'r');
+	const {schema, objectLength, bodyStartPosition, bodyObjects, fileHandle} = database;
 	const readBuffer = new Uint8Array(bodyObjects * objectLength);
 	await fileHandle.read(readBuffer,0,bodyObjects * objectLength,bodyStartPosition);
 	let position = 0;
@@ -88,8 +87,8 @@ const getRowPositionFromCondition = (db, key, condition, readBuffer) => {
 	let partLength = 0;
 	let wantedType;
     
-	const found = schema.some(({name, length, type}) => {
-		if (name === key) {
+	const found = schema.some(({key: localKey, length, type}) => {
+		if (key === localKey) {
 			partLength = length;
             cursor = offset;
 			wantedType = type;
@@ -102,7 +101,7 @@ const getRowPositionFromCondition = (db, key, condition, readBuffer) => {
 	// const valueLengthBytes = (valueAsuint8.length);
 	
 	if (!found) {
-		console.error(`part ${part} not found in schema ${JSON.stringify(schema)}`);
+		console.error(`key ${key} not found in schema ${JSON.stringify(schema)}`);
 		return -1;
 	}
 
@@ -154,21 +153,21 @@ const getEmptyRowPositions = (db, readBuffer) => {
 };
 
 const readRowPositionFromCondition = async(db, key, value) => {
-	const {path, bodyObjects, objectLength,maximumHeaderLength, fileHandle} = db;
+	const {bodyObjects, objectLength,maximumHeaderLength, fileHandle} = db;
 	const readBuffer = new Uint8Array(bodyObjects * objectLength);
 	await fileHandle.read(readBuffer,0,bodyObjects * objectLength,maximumHeaderLength);
 	return getRowPositionFromCondition(db, key, value, readBuffer);
 };
 
 const readEmptyRowPosition = async(db) => {
-	const {path, bodyObjects, objectLength,maximumHeaderLength, fileHandle} = db;
+	const {maximumHeaderLength, fileHandle} = db;
 	const readBuffer = new Uint8Array(db.fileSize - maximumHeaderLength);
 	await fileHandle.read(readBuffer,0,db.fileSize - maximumHeaderLength,maximumHeaderLength);
 	return getEmptyRowPosition(db, readBuffer);
 };
 
 const readEmptyRowPositions = async(db) => {
-	const {path, bodyObjects, objectLength,maximumHeaderLength, fileHandle} = db;
+	const {maximumHeaderLength, fileHandle} = db;
 	const readBuffer = new Uint8Array(db.fileSize - maximumHeaderLength);
 	await fileHandle.read(readBuffer,0,db.fileSize - maximumHeaderLength,maximumHeaderLength);
 	return getEmptyRowPositions(db, readBuffer);

@@ -11,26 +11,25 @@ export {
 
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
-import packageJson from "./package.json" with { type: `json` };
+import packageJson from "./package.json" with { type: "json" };
 const {version, name} = packageJson;
 import {uint8ArrayFromString} from "./netzlech.js";
 import {
     readAll,
 	readRowPositionFromCondition,
     readObjectFromCondition,
-	readEmptyRowPosition,
     readEmptyRowPositions,
 } from "./read.js";
 import {writeObject, writeBufferAt, writeBlank} from "./write.js";
 
 
-const WRITE = `w`;
+// const WRITE = `w`;
 const WRITE_READ = `r+`;
 const WRITE_READ_CREATE = `w+`;
-const READ = `r`;
-const APPEND = `a`;
+// const READ = `r`;
+// const APPEND = `a`;
 
-const startPositionFile = 0;
+// const startPositionFile = 0;
 const baseFileSize = 2000;
 const baseHeaderSize = 800;
 const versionSplit = version.split(`.`).map(Number);
@@ -43,13 +42,13 @@ const objectLengthFromSchema = (schema) => {
 };
 
 const defaultSchema = (schema) => {
-    return schema.map(({name, length = 1, type = "string"}) => {
-        if (type === "Uint32") {
+    return schema.map(({key, length = 1, type = `string`}) => {
+        if (type === `Uint32`) {
             length = 4;
-        } else if (type === "Number") {
+        } else if (type === `Number`) {
             length = 8;
         }
-        return {name, length, type};
+        return {key, length, type};
     });
 };
 
@@ -76,35 +75,32 @@ const useDB = async(path, schema) => {
     return db;
 };
 
-const createDB = (path, schema) => {
-    return new Promise(async (resolve, reject) => {
-        // r for read, a for append w for write will put null everythewhere or shrink the file
-        const fileHandle = await fsPromises.open(path, WRITE_READ_CREATE);
+const createDB = async (path, schema) => {
+    // r for read, a for append w for write will put null everythewhere or shrink the file
+    const fileHandle = await fsPromises.open(path, WRITE_READ_CREATE);
 
-        const db = createDBInterface(path, schema);
-        db.fileHandle = fileHandle;
-        const firstBuffer = Uint8Array.of(
-            ...uint8ArrayFromString(name),
-            ...Uint8Array.from(versionSplit),
-            0, // empty byte
-            0,
-            0, //schema size 2 bytes
-            ...uint8ArrayFromString(db.schemaJSON),
-            // last known positions ?
-            ...(new Uint8Array(baseFileSize)),
-        );
+    const db = createDBInterface(path, schema);
+    db.fileHandle = fileHandle;
+    const firstBuffer = Uint8Array.of(
+        ...uint8ArrayFromString(name),
+        ...Uint8Array.from(versionSplit),
+        0, // empty byte
+        0,
+        0, //schema size 2 bytes
+        ...uint8ArrayFromString(db.schemaJSON),
+        // last known positions ?
+        ...(new Uint8Array(baseFileSize)),
+    );
 
-        //todo: do we need it ? if yes fix RangeError: byte length of Uint16Array should be a multiple of 2 which can happen depending of the size of firstBuffer
-        // const int16View = new Uint16Array(firstBuffer.buffer);
-        // int16View[6] = db.schemaLength;//write at 12th
-        await writeBufferAt(fileHandle, firstBuffer, 0);
-        db.emptyRowPositions = await readEmptyRowPositions(db);
-        db.bodyObjects = 
-            Math.ceil(((db.bodyLastPosition - db.maximumHeaderLength) / db.objectLength)) -
-            (db.emptyRowPositions.length);
-        resolve(db);
-        
-    });
+    //todo: do we need it ? if yes fix RangeError: byte length of Uint16Array should be a multiple of 2 which can happen depending of the size of firstBuffer
+    // const int16View = new Uint16Array(firstBuffer.buffer);
+    // int16View[6] = db.schemaLength;//write at 12th
+    await writeBufferAt(fileHandle, firstBuffer, 0);
+    db.emptyRowPositions = await readEmptyRowPositions(db);
+    db.bodyObjects = 
+        Math.ceil(((db.bodyLastPosition - db.maximumHeaderLength) / db.objectLength)) -
+        (db.emptyRowPositions.length);
+    return db;
 };
 
 const createDBInterface = (path, schema, stats = {}) => {
@@ -147,29 +143,32 @@ const closeDB = (database) => {
  * register itself as an ongoing write operation
  * uses promise chaining 
  */
-const wLock = (writeBasedFunction) => {return async (db, ...args) => {
-    const {promise: thisLock, resolve} = Promise.withResolvers();
-    const previousWriteLock = db.writeLock;
-    db.writeLock = thisLock;
-    await Promise.allSettled([db.readLock, previousWriteLock]); // wait for previous read and write
-    const writePromise = writeBasedFunction(db, ...args);
-    await writePromise;
-    resolve();
-    return await writeBasedFunction;
-}};
+const wLock = (writeBasedFunction) => {
+    return async (db, ...args) => {
+        const {promise: thisLock, resolve} = Promise.withResolvers();
+        const previousWriteLock = db.writeLock;
+        db.writeLock = thisLock;
+        await Promise.allSettled([db.readLock, previousWriteLock]); // wait for previous read and write
+        const writePromise = writeBasedFunction(db, ...args);
+        await writePromise;
+        resolve();
+        return writeBasedFunction;
+    };
+};
 
-const rLock = (readBasedFunction) => {return async (db, ...args) => {
-    const {promise: thisLock, resolve} = Promise.withResolvers();
-    db.readLock = thisLock;
-    await db.writeLock; // wait for previous write
-    const readPromise = readBasedFunction(db, ...args);
-    await readPromise;
-    resolve();
-    return await readPromise;
-}};
+const rLock = (readBasedFunction) => {
+    return async (db, ...args) => {
+        const {promise: thisLock, resolve} = Promise.withResolvers();
+        db.readLock = thisLock;
+        await db.writeLock; // wait for previous write
+        const readPromise = readBasedFunction(db, ...args);
+        await readPromise;
+        resolve();
+        return readPromise;
+    };
+};
 
 const appendObject = async (database, object) => {
-    const {schema, fileHandle, bodyLastPosition} = database;
     const newPosition = await writeObject(database, object);;
     database.bodyLastPosition = newPosition;
     database.bodyObjects += 1;

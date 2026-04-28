@@ -6,7 +6,7 @@ import {valueFromSubUint8Array} from "../../read.js";
 
 
 test(`read write Number`, (t) => {
-    const schema = [{type: `Number`, name: `Number`, length:8}];
+    const schema = [{type: `Number`, key: `Number`, length:8}];
     [
         0,1,2,-1, -2, 
         Math.PI, 2000, 10 ** 10,
@@ -26,16 +26,16 @@ test(`read write Number`, (t) => {
 
 test(`read write utf-8`, (t) => {
     const length = 64;
-    const schema = [{ name: `name`, length, type:`string`}];
+    const schema = [{ key: `word`, length, type:`string`}];
     [
         `桁`,
         `café`,
         `😂`,
     ].forEach((utf8String) => {
-        const object = {name: utf8String};
+        const object = {word: utf8String};
         const uint8 = uint8ArrayFromObject(schema,length, object);
         const reconstituted = valueFromSubUint8Array(uint8, `string`);
-        assert.equal(reconstituted, object.name);
+        assert.equal(reconstituted, object.word);
         // assert(deepEqualAdded(numberReconstituted, object.Number));
     });
 });

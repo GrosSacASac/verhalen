@@ -12,12 +12,12 @@ import fsPromises from "node:fs/promises";
 
 
 const db = await useDB(`./leit.verhalen`, [
-    {name: `Name`, length: 16},
-    {name: `Bday`, length: 10},
-    {name: `color`, length: 16},
-    {name: `uint32`, type: `Uint32`},
-    {name: `uint8`, type: `Uint8`},
-    {name: `number`, type: `Number`},
+    {key: `Name`, length: 16},
+    {key: `Bday`, length: 10},
+    {key: `color`, length: 16},
+    {key: `uint32`, type: `Uint32`},
+    {key: `uint8`, type: `Uint8`},
+    {key: `number`, type: `Number`},
 ]);
 
 await addObject(db, {
