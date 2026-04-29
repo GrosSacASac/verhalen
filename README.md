@@ -64,6 +64,10 @@ Objects are data pieces used in programs that contain atomic data types like str
 
 ## api
 
+### install
+
+[npm install verhalen-sac](https://www.npmjs.com/package/verhalen-sac)
+
 ### import 
 
 ```js
@@ -76,7 +80,7 @@ import {
     deleteObject,
     readAllObjects,
     readFind,
-} from "verhalen";
+} from "verhalen-sac";
 ```
 
 ### useDB
