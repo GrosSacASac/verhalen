@@ -61,7 +61,9 @@ suite(`end to end`, async () => {
 
 
     await test(`delete`, async () => {
-        await deleteObject(db, `string`, (s) => {return s === o3.string;});
+        await deleteObject(db, `string`, (s) => {
+            return s === o3.string;
+        });
     });
 
     await test(`database does not contain what we removed`, async () => {
@@ -69,7 +71,9 @@ suite(`end to end`, async () => {
     });
 
     await test(`replace`, async () => {
-        await replaceObject(db, o1bis, `string`, (s) => {return s === `GrosSacASac`;});
+        await replaceObject(db, o1bis, `string`, (s) => {
+            return s === `GrosSacASac`;
+        });
     });
 
     await test(`database contains what we just replaced`, async () => {
@@ -78,11 +82,15 @@ suite(`end to end`, async () => {
 
 
     await test(`database finds what search`, async () => {
-        assert.deepStrictEqual((await readFind(db, `int8`, (i) => {return i === o2.int8;})), o2);
+        assert.deepStrictEqual((await readFind(db, `int8`, (i) => {
+            return i === o2.int8;
+        })), o2);
     });
 
     await test(`database returns undefined if what searched is absent`, async () => {
-        assert.deepStrictEqual((await readFind(db, `int8`, (i) => {return i === Symbol();})), undefined);
+        assert.deepStrictEqual((await readFind(db, `int8`, (i) => {
+            return i === Symbol();
+        })), undefined);
     });
 
 });

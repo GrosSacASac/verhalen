@@ -51,7 +51,9 @@ await addObject(db, {
 
 console.log(await readAllObjects(db));
 
-await deleteObject(db, `Name`, (Name) => {return Name === `temp`;});
+await deleteObject(db, `Name`, (Name) => {
+    return Name === `temp`;
+});
 await replaceObject(db, {
     Name: `GrosSacASacs`,
     Bday: `1999-02-02`,
@@ -63,7 +65,9 @@ await replaceObject(db, {
 
 console.log(`after delete, replace`, await readAllObjects(db));
 
-console.log(`finding object that has color brown`, await readFind(db, `color`,(color) => {return color === `brown`;}));
+console.log(`finding object that has color brown`, await readFind(db, `color`,(color) => {
+    return color === `brown`;
+}));
 
 await closeDB(db);
 
