@@ -86,13 +86,13 @@ import {
 
 Will use or create the db if the file does not exist. It returns the db object used by the rest of the methods.
 
-`const db = useDB(path, schema);`
+`const db = await useDB(path, schema);`
 
 ### closeDB
 
 Will close the db file descriptor.
 
-`closeDB(path, schema);`
+`await closeDB(db);`
 
 ### addObject
 
