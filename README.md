@@ -13,7 +13,6 @@ A schema defines the shape of the data. Example:
     {key: "Name", length: 16},
     {key: "Bday", length: 10},
     {key: "color", length: 16},
-    {key: "int8", type: "Uint8"},
     {key: "number", type: "Number"},
 ]
 ```
@@ -118,7 +117,9 @@ await replaceObject(db, {
     Bday: "1999-02-02",
     color: "metal green",
     number: 2027,
-}, "Name", (Name) => {return Name === "GrosSacASac"});
+}, "Name", (Name) => {
+    return Name === "GrosSacASac";
+});
 ```
 
 ### deleteObject
@@ -126,7 +127,9 @@ await replaceObject(db, {
 Deletes an object in the database. The first argument is the database. The last 2 arguments are similar to replaceObject.
 
 ```js
-await deleteObject(db, "Name", ((Name) => {return Name === "GrosSacASac"}));
+await deleteObject(db, "Name", ((Name) => {
+    return Name === "GrosSacASac";
+}));
 ```
 
 ### readFind
@@ -134,7 +137,9 @@ await deleteObject(db, "Name", ((Name) => {return Name === "GrosSacASac"}));
 Returns the first object found. The last 2 arguments are similar to replaceObject. Returns undefined if object is not found.
 
 ```js
-const object = await readFind(db, "Name", ((Name) => {return Name === "GrosSacASac"}));
+const object = await readFind(db, "Name", ((Name) => {
+    return Name === "GrosSacASac";
+}));
 ```
 
 ### readAllObjects
