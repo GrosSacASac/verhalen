@@ -1,10 +1,10 @@
 {
-  "name": "verhalen",
+  "name": "verhalen-sac",
   "version": "3.0.0",
   "description": "Schema based database for JS",
   "license": "MIT",
   "type": "module",
-  "main": "verhalen.js",
+  "main": "source/verhalen.js",
   "scripts": {
     "test": "node --test --test-global-setup ./tests/end_to_end/setup_teardown.js",
     "test-unit": "node --test \"tests/unit/**.test.js\"",
