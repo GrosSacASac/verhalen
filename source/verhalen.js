@@ -11,7 +11,7 @@ export {
 
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
-import packageJson from "./package.json" with { type: "json" };
+import packageJson from "../package.json" with { type: "json" };
 const {version, name} = packageJson;
 import {uint8ArrayFromString} from "./netzlech.js";
 import {

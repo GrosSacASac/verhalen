@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert";
 
-import {uint8ArrayFromObject} from "../../write.js";
-import {valueFromSubUint8Array} from "../../read.js";
+import {uint8ArrayFromObject} from "../../source/write.js";
+import {valueFromSubUint8Array} from "../../source/read.js";
 
 
 test(`read write Number`, (t) => {

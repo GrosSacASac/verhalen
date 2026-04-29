@@ -7,7 +7,7 @@ import {
     deleteObject,
     readAllObjects,
     readFind,
-} from "../../verhalen.js";
+} from "../../source/verhalen.js";
 import fsPromises from "node:fs/promises";
 import test, {suite, after} from "node:test";
 import assert from "node:assert";
