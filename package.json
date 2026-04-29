@@ -31,6 +31,8 @@
   },
   "keywords": [
     "database",
-    "schema"
+    "schema",
+    "minimal",
+    "primitive"
   ]
 }
