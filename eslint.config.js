@@ -8,7 +8,7 @@ import stylistic from "@stylistic/eslint-plugin";
 export default defineConfig([
     
 	{
-		files: [`**/*.js`],
+		files: [`source/**/*.js`],
         languageOptions: { globals: globals.browser },
 		plugins: {
             '@stylistic': stylistic,

@@ -22,11 +22,8 @@
   },
   "files": [
     "README.MD",
-    "verhalen.js",
-    "read.js",
-    "write.js",
-    "netzlech.js",
-    "configuration.js"
+    "license.txt",
+    "source/"
   ],
   "repository": {
     "type": "git",
